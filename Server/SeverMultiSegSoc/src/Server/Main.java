@@ -11,18 +11,18 @@ public class Main {
 	static int port = 5000;
 	
 	public static void main(String[] args) {
+		DbConnection dbconnection = new DbConnection();
 		try {
 			server = new ServerSocket(port);
 			while(true) {
 					socket = new Socket();		
 					System.out.println("Waiting connection...");
 					socket = server.accept();
-					ConnectionThread connection = new ConnectionThread(socket);
+					ConnectionThread connection = new ConnectionThread(socket, dbconnection);
 					connection.start();
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-			//hola
 		}	
 	}
 }

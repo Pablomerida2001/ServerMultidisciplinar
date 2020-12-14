@@ -29,10 +29,10 @@ public class ConnectionThread extends Thread{
 				String[] values = msg.split("*");
 				
 				switch (values[0]) {
-				case "":
+				case "0001":
 					login(values[1], values[2]);
 					break;
-				default:
+				case "0002":
 					break;
 				}
 			}
@@ -42,7 +42,7 @@ public class ConnectionThread extends Thread{
 	}
 	
 	public void login(String email, String passwrd) {
-		String query = "Select * FROM Email where email = '"+email+"'";
+		String query = "Select * FROM email where Email = '"+email+"'";
 		ResultSet rs = dbconnection.executeQuery(query);
 		try {
 			if(rs.next()) {

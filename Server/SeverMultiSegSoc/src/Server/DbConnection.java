@@ -14,7 +14,7 @@ public class DbConnection {
 	public DbConnection() {
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
-			connection = (Connection) DriverManager.getConnection("jdbc:mysql://localhost/SeguridadSocial", "root", ""); 
+			connection = (Connection) DriverManager.getConnection("jdbc:mysql://localhost/multipresencial", "root", ""); 
 			statement = connection.createStatement();
 		} catch (ClassNotFoundException | SQLException e) {
 			e.printStackTrace();

@@ -9,7 +9,6 @@ import java.sql.SQLException;
 
 import Database.DbConnection;
 import Database.User;
-import Ftp.Controller;
 
 public class ConnectionThread extends Thread{
 	
@@ -18,7 +17,6 @@ public class ConnectionThread extends Thread{
 	DataInputStream dataIS;
 	DataOutputStream dataOS;
 	User user;
-	Controller ftpController;
 	
 	public ConnectionThread(Socket socket, DbConnection dbconnection) {
 		this.socket = socket;
@@ -41,6 +39,8 @@ public class ConnectionThread extends Thread{
 				case "0002":
 					register(values[1], values[2], values[3], values[4]);
 					break;
+				case "0004":
+					break;
 				}
 			}
 		} catch(java.net.SocketException ee) {
@@ -59,8 +59,6 @@ public class ConnectionThread extends Thread{
 					this.user = new User(rs.getInt(1), rs.getString(2), rs.getString(3),
 							rs.getString(4), rs.getString(5),rs.getString(6));
 					dataOS.writeInt(0);
-					connectFTP();
-					loginFTP();
 				}else {
 					dataOS.writeInt(1);							
 				}
@@ -74,19 +72,6 @@ public class ConnectionThread extends Thread{
 	
 	public void register(String name, String surname, String email, String password) {
 		
-	}
-	
-	public void connectFTP() {
-		ftpController = new Controller(user.getName(), user.getPassword());
-		if(!ftpController.connect()) {
-			System.out.println("error de conexion ftp");
-		}
-	}
-	
-	public void loginFTP() {
-		if(!ftpController.loginFTP()) {
-			System.out.println("error de inicio de sesion ftp");
-		}
 	}
 	
 }

@@ -44,11 +44,11 @@ public class ConnectionThread extends Thread{
 	}
 	
 	public void login(String email, String passwrd) {
-		String query = "Select * FROM email where Email = '"+email+"'";
+		String query = "Select * FROM user where Email = '"+email+"'";
 		ResultSet rs = dbconnection.executeQuery(query);
 		try {
 			if(rs.next()) {
-				if(rs.getString(3).equals(passwrd)) {
+				if(rs.getString(6).equals(passwrd)) {
 					dataOS.writeInt(000);
 				}else {
 					dataOS.writeInt(001);							

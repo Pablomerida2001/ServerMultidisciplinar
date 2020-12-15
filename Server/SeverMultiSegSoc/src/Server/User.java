@@ -2,47 +2,68 @@ package Server;
 
 public class User {
 	
-	int id;
-	String name;
-	String surname;
-	Role role;
+	int Id;
+	String Name;
+	String Surname;
+	String Role;
+	String Email;
+	String Password;
 	
-	public User(int id, String name, String surname, Role role) {
-		this.id = id;
-		this.name = name;
-		this.surname = surname;
-		this.role = role;
+	public User(int Id, String Name, String Surname, String Role, String Email, String Password) {
+		this.Id = Id;
+		this.Name = Name;
+		this.Surname = Surname;
+		this.Role = Role;
+		this.Email = Email;
+		this.Password = Password;
 	}
 
 	public int getId() {
-		return id;
+		return Id;
 	}
 
 	public void setId(int id) {
-		this.id = id;
+		Id = id;
 	}
 
 	public String getName() {
-		return name;
+		return Name;
 	}
 
 	public void setName(String name) {
-		this.name = name;
+		Name = name;
 	}
 
 	public String getSurname() {
-		return surname;
+		return Surname;
 	}
 
 	public void setSurname(String surname) {
-		this.surname = surname;
+		Surname = surname;
 	}
 
-	public Role getRole() {
-		return role;
+	public String getRole() {
+		return Role;
 	}
 
-	public void setRole(Role role) {
-		this.role = role;
+	public void setRole(String role) {
+		Role = role;
 	}
+
+	public String getEmail() {
+		return Email;
+	}
+
+	public void setEmail(String email) {
+		Email = email;
+	}
+
+	public String getPassword() {
+		return Password;
+	}
+
+	public void setPassword(String password) {
+		Password = password;
+	}
+
 }

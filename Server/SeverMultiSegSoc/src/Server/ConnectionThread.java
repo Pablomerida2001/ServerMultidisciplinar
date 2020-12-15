@@ -26,8 +26,8 @@ public class ConnectionThread extends Thread{
 			
 			while(true) {
 				String msg = dataIS.readUTF();
-				String[] values = msg.split("*");
-				
+				String[] values = msg.split("\\*");
+
 				switch (values[0]) {
 				case "0001":
 					login(values[1], values[2]);
@@ -36,7 +36,9 @@ public class ConnectionThread extends Thread{
 					break;
 				}
 			}
-		} catch (IOException e) {
+		} catch(java.net.SocketException ee) {
+			System.out.println("Client disconnected");
+		}catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -46,7 +48,7 @@ public class ConnectionThread extends Thread{
 		ResultSet rs = dbconnection.executeQuery(query);
 		try {
 			if(rs.next()) {
-				if(rs.getString(2).equals(passwrd)) {
+				if(rs.getString(3).equals(passwrd)) {
 					dataOS.writeInt(000);
 				}else {
 					dataOS.writeInt(001);							

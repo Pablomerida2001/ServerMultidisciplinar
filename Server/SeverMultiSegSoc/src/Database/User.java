@@ -1,4 +1,4 @@
-package Server;
+package Database;
 
 public class User {
 	

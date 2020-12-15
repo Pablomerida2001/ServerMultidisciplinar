@@ -1,4 +1,4 @@
-package Server;
+package Database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -29,6 +29,10 @@ public class DbConnection {
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	public Connection getConexion() {
+		return this.connection;
 	}
 	
 }

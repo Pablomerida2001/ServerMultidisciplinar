@@ -1,7 +1,5 @@
 package Database;
 
-import java.io.Serializable;
-
 public class User{
 	
 	int Id;

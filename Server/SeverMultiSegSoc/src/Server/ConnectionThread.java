@@ -43,6 +43,9 @@ public class ConnectionThread extends Thread{
 				case "0004":
 					returnUserData();
 					break;
+				case "0005":
+					registerMovement(values[1], values[2]);
+					break;
 				}
 			}
 		} catch(java.net.SocketException ee) {
@@ -87,5 +90,10 @@ public class ConnectionThread extends Thread{
 		
 	}
 	
-	
+	public void registerMovement(String movement, String date) {
+		String sql;
+		sql = "Insert into mov values(" + user.getId() +", '" + user.getRole() +"',' "+movement
+				+"',' "+date+"');";
+		dbconnection.insertData(sql);
+	}
 }

@@ -31,6 +31,14 @@ public class DbConnection {
 		}
 	}
 	
+	public synchronized void insertData(String sql) {
+		try {
+			this.statement.execute(sql);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public Connection getConexion() {
 		return this.connection;
 	}

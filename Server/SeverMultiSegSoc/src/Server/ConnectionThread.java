@@ -3,6 +3,7 @@ package Server;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -40,6 +41,7 @@ public class ConnectionThread extends Thread{
 					register(values[1], values[2], values[3], values[4]);
 					break;
 				case "0004":
+					returnUserData();
 					break;
 				}
 			}
@@ -73,5 +75,17 @@ public class ConnectionThread extends Thread{
 	public void register(String name, String surname, String email, String password) {
 		
 	}
+	
+	public void returnUserData() {
+		try {
+			String msg = user.getId() + "*" + user.getName() + "*" + user.getSurname()+
+					"*" +user.getRole() + "*" + user.getEmail() + "*" + user.getPassword();
+			dataOS.writeUTF(msg);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
 	
 }

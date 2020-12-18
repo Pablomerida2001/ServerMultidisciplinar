@@ -10,6 +10,7 @@ import java.sql.SQLException;
 
 import Database.DbConnection;
 import Database.User;
+import Database.Services.Movement.CreateMovement;
 import Database.Services.UserService.FindUser;
 
 public class ConnectionThread extends Thread{
@@ -57,10 +58,10 @@ public class ConnectionThread extends Thread{
 	}
 	
 	public void login(String email, String passwrd) {
-		User user = FindUser.FindUser(email, passwrd);
+		this.user = FindUser.FindUser(email, passwrd);
 		
 		try {
-			if(user.getId() != -1) {
+			if(user.getId() != -1) { // Si id es igual a -1, entonces usuario no existe
 				dataOS.writeInt(0);
 			} else {
 				dataOS.writeInt(2);
@@ -86,9 +87,6 @@ public class ConnectionThread extends Thread{
 	}
 	
 	public void registerMovement(String movement, String date) {
-		String sql;
-		sql = "Insert into mov values(" + user.getId() +", '" + user.getRole() +"',' "+movement
-				+"',' "+date+"');";
-		dbconnection.insertData(sql);
+		CreateMovement.InsertMovement(user.getId(), movement, date);
 	}
 }

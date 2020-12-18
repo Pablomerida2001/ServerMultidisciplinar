@@ -43,4 +43,12 @@ public class DbConnection {
 		return this.connection;
 	}
 	
+	public void closeConnection() {
+		try {
+			connection.close();
+		} catch (SQLException e) {
+			System.out.println("Error in closing connection to DB. " + e.getMessage());
+		}
+	}
+	
 }

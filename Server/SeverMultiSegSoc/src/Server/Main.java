@@ -5,6 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import Database.DbConnection;
+import Database.Services.UserService.FindUser;
 
 public class Main {
 

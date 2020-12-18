@@ -10,6 +10,7 @@ import java.sql.SQLException;
 
 import Database.DbConnection;
 import Database.User;
+import Database.Services.UserService.FindUser;
 
 public class ConnectionThread extends Thread{
 	
@@ -56,22 +57,16 @@ public class ConnectionThread extends Thread{
 	}
 	
 	public void login(String email, String passwrd) {
-		String query = "Select * FROM user where Email = '"+email+"'";
-		ResultSet rs = dbconnection.executeQuery(query);
+		User user = FindUser.FindUser(email, passwrd);
+		
 		try {
-			if(rs.next()) {
-				if(rs.getString(6).equals(passwrd)) {
-					this.user = new User(rs.getInt(1), rs.getString(2), rs.getString(3),
-							rs.getString(4), rs.getString(5),rs.getString(6));
-					dataOS.writeInt(0);
-				}else {
-					dataOS.writeInt(1);							
-				}
-			}else {
+			if(user.getId() != -1) {
+				dataOS.writeInt(0);
+			} else {
 				dataOS.writeInt(2);
 			}
-		} catch (SQLException | IOException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			System.out.println("Error in login. " + e.getMessage());
 		}
 	}
 	

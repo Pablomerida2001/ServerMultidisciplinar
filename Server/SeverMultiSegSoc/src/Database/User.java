@@ -2,12 +2,12 @@ package Database;
 
 public class User{
 	
-	int Id;
-	String Name;
-	String Surname;
-	String Role;
-	String Email;
-	String Password;
+	private int Id = -1;
+	private String Name;
+	private String Surname;
+	private String Role;
+	private String Email;
+	private String Password;
 	
 	public User(int Id, String Name, String Surname, String Role, String Email, String Password) {
 		this.Id = Id;
@@ -17,6 +17,8 @@ public class User{
 		this.Email = Email;
 		this.Password = Password;
 	}
+	
+	public User() {}
 
 	public int getId() {
 		return Id;

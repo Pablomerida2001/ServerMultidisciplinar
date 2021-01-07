@@ -8,9 +8,9 @@ public class CreateMovement {
 	/*
 	 * Metodo que guarda el movimiento del usuario
 	 */
-	public static void InsertMovement(int userId, String movement, String date) {
+	public static void InsertMovement(int userId,String role, String movement, String date) {
 		db = new DbConnection();
-		String sql = "Insert into mov values(" + userId + ",' "+movement
+		String sql = "Insert into mov values(" + userId + ",'" + role +"',' "+movement
 				+"',' "+date+"');";
 		db.insertData(sql);
 		db.closeConnection();

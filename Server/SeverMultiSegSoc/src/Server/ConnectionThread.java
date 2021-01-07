@@ -87,6 +87,6 @@ public class ConnectionThread extends Thread{
 	}
 	
 	public void registerMovement(String movement, String date) {
-		CreateMovement.InsertMovement(user.getId(), movement, date);
+		CreateMovement.InsertMovement(user.getId(),user.getRole(), movement, date);
 	}
 }

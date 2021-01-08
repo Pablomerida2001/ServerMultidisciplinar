@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import Database.DbConnection;
 import Database.User;
 import Database.Services.Movement.CreateMovement;
+import Database.Services.UserService.ChangeOnlineStatus;
 import Database.Services.UserService.FindUser;
 
 public class ConnectionThread extends Thread{
@@ -39,9 +40,6 @@ public class ConnectionThread extends Thread{
 				case "0001":
 					login(values[1], values[2]);
 					break;
-				case "0002":
-					register(values[1], values[2], values[3], values[4]);
-					break;
 				case "0004":
 					returnUserData();
 					break;
@@ -51,7 +49,9 @@ public class ConnectionThread extends Thread{
 				}
 			}
 		} catch(java.net.SocketException ee) {
+			ChangeOnlineStatus.changeOnlineStatus(false, user.getEmail(), user.getPassword());
 			System.out.println("Client disconnected");
+			return;
 		}catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -62,19 +62,20 @@ public class ConnectionThread extends Thread{
 		
 		try {
 			if(user.getId() != -1) { // Si id es igual a -1, entonces usuario no existe
-				dataOS.writeInt(0);
-			} else {
+				if(user.getOnline()) {
+					dataOS.writeInt(1);	
+				}else {
+					dataOS.writeInt(0);
+					ChangeOnlineStatus.changeOnlineStatus(true, user.getEmail(), user.getPassword());
+				}
+			}else {
 				dataOS.writeInt(2);
 			}
 		} catch (Exception e) {
 			System.out.println("Error in login. " + e.getMessage());
 		}
 	}
-	
-	public void register(String name, String surname, String email, String password) {
 		
-	}
-	
 	public void returnUserData() {
 		try {
 			String msg = user.getId() + "*" + user.getName() + "*" + user.getSurname()+
@@ -83,7 +84,6 @@ public class ConnectionThread extends Thread{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 	}
 	
 	public void registerMovement(String movement, String date) {

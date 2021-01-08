@@ -6,6 +6,7 @@ import java.net.Socket;
 
 import Database.DbConnection;
 import Database.Services.UserService.FindUser;
+import Mailer.Mailer;
 
 public class Main {
 
@@ -14,6 +15,7 @@ public class Main {
 	static int port = 5000;
 	
 	public static void main(String[] args) {
+		
 		DbConnection dbconnection = new DbConnection();
 		try {
 			server = new ServerSocket(port);

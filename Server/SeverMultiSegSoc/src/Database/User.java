@@ -8,14 +8,16 @@ public class User{
 	private String Role;
 	private String Email;
 	private String Password;
+	private Boolean OnlineStatus;
 	
-	public User(int Id, String Name, String Surname, String Role, String Email, String Password) {
+	public User(int Id, String Name, String Surname, String Role, String Email, String Password, Boolean Online) {
 		this.Id = Id;
 		this.Name = Name;
 		this.Surname = Surname;
 		this.Role = Role;
 		this.Email = Email;
 		this.Password = Password;
+		this.OnlineStatus = Online;
 	}
 	
 	public User() {}
@@ -66,6 +68,14 @@ public class User{
 
 	public void setPassword(String password) {
 		Password = password;
+	}
+	
+	public Boolean getOnline() {
+		return OnlineStatus;
+	}
+
+	public void setOnline(Boolean online) {
+		OnlineStatus = online;
 	}
 
 }

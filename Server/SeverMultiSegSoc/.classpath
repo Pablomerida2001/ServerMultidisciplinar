@@ -4,5 +4,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="D:/Descargas/commons-net-3.7.2-bin/commons-net-3.7.2/commons-net-3.7.2.jar"/>
 	<classpathentry kind="lib" path="D:/Descargas/com.mysql.jdbc_5.1.5.jar"/>
+	<classpathentry kind="lib" path="D:/Descargas/sqlite-jdbc-3.8.11.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -23,6 +23,7 @@ import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.Transport;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 
@@ -33,6 +34,9 @@ public class Mailer {
 	
 	public Mailer() {}
 	
+	/*
+	 * Metodo que envie el correo
+	 */
 	public static boolean send(String from,String password,String to,String sub,String msg){  
         //Crear propiedades    
         Properties props = new Properties();    
@@ -57,34 +61,25 @@ public class Mailer {
         	System.out.println("Error in send message to Gmail Server, " + e.getMessage());
         	return false;
         }    
-	}
-	//Comprobar datos de usuario
-	private static Session getAuthentication(Properties properties, String user, String password) {
-		return Session.getDefaultInstance(properties,    
-		         new Authenticator() {
-   	    protected PasswordAuthentication getPasswordAuthentication() {
-   	        return new PasswordAuthentication(user, password);
-   	    }
-   });  
-	}
+	}	
 	
-	
-	/////////////////////////////
-	
-	public static void readInboundEmails(String host, String storeType, String user,
+	/*
+	 * Metodo que devuelve los correos no leidos
+	 */
+	public static ArrayList<Models.Message> readInboundEmails(String user,
 		      String password) throws MessagingException{
+		ArrayList<Models.Message> recievedMessages = new ArrayList<Models.Message>();
 		Session session = Session.getDefaultInstance(new Properties( ));
 	    Store store = session.getStore("imaps");
 	    store.connect("imap.googlemail.com", 993, user, password);
-//	    store.connect(host, 993, user, password);
 	    Folder inbox = store.getFolder( "INBOX" );
 	    inbox.open( Folder.READ_ONLY );
 
-	    // Fetch unseen messages from inbox folder
+	    // Recoger los mensajes no leidos
 	    Message[] messages = inbox.search(
 	        new FlagTerm(new Flags(Flags.Flag.SEEN), false));
 
-	    // Sort messages from recent to oldest
+	    // Ordenar los mensajes (el primero sera más reciente)
 	    Arrays.sort( messages, ( m1, m2 ) -> {
 	      try {
 	        return m2.getSentDate().compareTo( m1.getSentDate() );
@@ -96,20 +91,20 @@ public class Mailer {
 	    for ( Message message : messages ) {
 	      try {
 			try {
-				System.out.println( 
-				      "sendDate: " + message.getSubject()
-				      + " subject:" + getTextFromMessage(message) + " " +
-				    		  ((InternetAddress)((Address)(message.getFrom()[0]))).getAddress());
+				String messageBody = getTextFromMessage(message);
+				String from = ((InternetAddress)((Address)(message.getFrom()[0]))).getAddress();
+				recievedMessages.add(new Models.Message(message.getSubject(), messageBody, message.getReceivedDate(), from));
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.println("Error, in readInboundEmails (IOException) " + e.getMessage());
 			}
 		} catch (MessagingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("Error, in readInboundEmails (MessagingException) " + e.getMessage());
 		}
 	    }
+	    
+	    return recievedMessages;
 	  }
+	
 	private static String getTextFromMessage(Message message) throws MessagingException, IOException {
 	    String result = "";
 	    if (message.isMimeType("text/plain")) {
@@ -129,11 +124,21 @@ public class Mailer {
 	        BodyPart bodyPart = mimeMultipart.getBodyPart(i);
 	        if (bodyPart.isMimeType("text/plain")) {
 	            result = result + "\n" + bodyPart.getContent();
-	            break; // without break same text appears twice in my tests
+	            break;
 	        } else if (bodyPart.getContent() instanceof MimeMultipart){
 	            result = result + getTextFromMimeMultipart((MimeMultipart)bodyPart.getContent());
 	        }
 	    }
 	    return result;
+	}
+
+	//Comprobar datos de usuario
+	private static Session getAuthentication(Properties properties, String user, String password) {
+		return Session.getDefaultInstance(properties,    
+		         new Authenticator() {
+	   	    protected PasswordAuthentication getPasswordAuthentication() {
+	   	        return new PasswordAuthentication(user, password);
+	   	    }
+		});  
 	}
 }

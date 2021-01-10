@@ -20,27 +20,30 @@ public class RecieveEmailThread extends Thread {
 	private Folder inbox;
 	private ObjectOutputStream outputStream; 
 	
-	public RecieveEmailThread(String user, String password, boolean getAllEmails, boolean userStillOnLine, ObjectOutputStream outputStream)
+	public RecieveEmailThread(String user, String password, 
+			boolean getAllEmails, boolean userStillOnLine, ObjectOutputStream outputStream)
 			throws MessagingException {
 		this.user = user;
 		this.password = password;
 		this.userStillOnLine = userStillOnLine;
 		this.getAllEmails = getAllEmails;
 		this.outputStream = outputStream;
-		this.inbox = Mailer.getConnectionToIMAP(user, password);
+//		this.inbox = Mailer.getConnectionToIMAP(user, password);
 	}
 	
 	@Override
 	public void run() {
 		while(userStillOnLine) {
-			DataRequestResponse response = new DataRequestResponse("1111", "", "", null);
+			DataRequestResponse response = new DataRequestResponse("1111", "", "", new ArrayList<Object>());
 			try {
+			    this.inbox = Mailer.getConnectionToIMAP(user, password);
 				email = Mailer.readInboundEmails(inbox, user, password, getAllEmails);
-			if (email.size() > 0) {
+			if (email.size() > 0) { // 
 				response.addData(email);
-				//Se va acrear objeto que se va a mandar a cliente
-				//mandar a cliente
 				System.out.println(email.size());
+				if(email.size() > 1) {
+					Mailer.flagAsSeen(email.get(0), user, password);
+				}
 				outputStream.writeObject(response);
 			} else {
 				response.addData(email);

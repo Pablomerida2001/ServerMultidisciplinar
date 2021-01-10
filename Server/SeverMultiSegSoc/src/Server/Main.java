@@ -18,15 +18,6 @@ public class Main {
 	
 	public static void main(String[] args) {
 		
-//		RecieveEmailThread emailThread;
-//		try {
-//			emailThread = new RecieveEmailThread("vbay.sanjose@alumnado.fundacionloyola.net", "67757111", true, true, null);
-//			emailThread.start();
-//		} catch (MessagingException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		
 		
 		DbConnection dbconnection = new DbConnection();
 		try {

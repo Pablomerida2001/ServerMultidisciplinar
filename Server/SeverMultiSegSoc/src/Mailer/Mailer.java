@@ -37,7 +37,8 @@ public class Mailer {
 	/*
 	 * Metodo que envie el correo
 	 */
-	public static boolean send(String from,String password,String to,String sub,String msg){  
+	public static boolean send(String from,String password,String to,String sub,String msg)
+			throws MessagingException {  
         //Crear propiedades    
         Properties props = new Properties();    
         props.put("mail.smtp.host", "smtp.gmail.com");    
@@ -49,18 +50,14 @@ public class Mailer {
         //Crear Session   
         Session session = getAuthentication(props, from, password);
         //Creacion MimeMessage (message object)
-        try {    
+        
          MimeMessage message = new MimeMessage(session);    
          message.addRecipient(Message.RecipientType.TO,new InternetAddress(to));    
          message.setSubject(sub);    
          message.setText(msg);    
          //Enviar mensage
          Transport.send(message);  
-         return true;
-        } catch (MessagingException e) {
-        	System.out.println("Error in send message to Gmail Server, " + e.getMessage());
-        	return false;
-        }    
+         return true;   
 	}	
 	
 	/*

@@ -7,12 +7,16 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+
+import javax.mail.MessagingException;
 
 import Database.DbConnection;
 import Database.User;
 import Database.Services.Movement.CreateMovement;
 import Database.Services.UserService.ChangeOnlineStatus;
 import Database.Services.UserService.FindUser;
+import Mailer.Mailer;
 
 public class ConnectionThread extends Thread{
 	
@@ -21,6 +25,8 @@ public class ConnectionThread extends Thread{
 	DataInputStream dataIS;
 	DataOutputStream dataOS;
 	User user;
+	
+	
 	
 	public ConnectionThread(Socket socket, DbConnection dbconnection) {
 		this.socket = socket;
@@ -48,6 +54,9 @@ public class ConnectionThread extends Thread{
 					break;
 				}
 			}
+			
+			
+			
 		} catch(java.net.SocketException ee) {
 			ChangeOnlineStatus.changeOnlineStatus(false, user.getEmail(), user.getPassword());
 			System.out.println("Client disconnected");
@@ -55,6 +64,21 @@ public class ConnectionThread extends Thread{
 		}catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void sendEmail(String from, String password, String to, String sub, String msg) {
+		try {
+			try {
+				boolean result = Mailer.send(from, password, to, sub, msg); // True -> correo enviado
+				dataOS.writeInt(1);
+			} catch (MessagingException e) {
+				System.out.println("Error, in sendEmail (MessagingException) " + e.getMessage());
+				dataOS.writeInt(0);
+			}
+		} catch (Exception e) {
+			System.out.println("Error in login. " + e.getMessage());
+		}
+																	
 	}
 	
 	public void login(String email, String passwrd) {

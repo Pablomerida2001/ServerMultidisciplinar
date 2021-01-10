@@ -9,8 +9,6 @@ import javax.mail.MessagingException;
 
 import Database.DbConnection;
 import Database.Services.UserService.FindUser;
-import Mailer.Mailer;
-import Models.Message;
 
 public class Main {
 
@@ -20,18 +18,21 @@ public class Main {
 	
 	public static void main(String[] args) {
 		
-		DbConnection dbconnection = new DbConnection();
-		try {
-			server = new ServerSocket(port);
-			while(true) {
-					socket = new Socket();		
-					System.out.println("Waiting connection...");
-					socket = server.accept();
-					ConnectionThread connection = new ConnectionThread(socket, dbconnection);
-					connection.start();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}	
+		RecieveEmailThread emailThread = new RecieveEmailThread("vbay.sanjose@alumnado.fundacionloyola.net", "67757111", true);
+		emailThread.start();
+		
+//		DbConnection dbconnection = new DbConnection();
+//		try {
+//			server = new ServerSocket(port);
+//			while(true) {
+//					socket = new Socket();		
+//					System.out.println("Waiting connection...");
+//					socket = server.accept();
+//					ConnectionThread connection = new ConnectionThread(socket, dbconnection);
+//					connection.start();
+//			}
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}	
 	}
 }

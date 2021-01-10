@@ -4,6 +4,7 @@ package Mailer;
  */
 
 import javax.mail.MessagingException;
+import javax.mail.NoSuchProviderException;
 import javax.mail.PasswordAuthentication;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
@@ -32,24 +33,26 @@ import javax.mail.Address;
 
 public class Mailer {
 	
+	private Folder inbox;
+	
 	public Mailer() {}
 	
 	/*
 	 * Metodo que envie el correo
 	 */
-	public static boolean send(String from,String password,String to,String sub,String msg)
+	public static boolean send(Session session, String from,String password,String to,String sub,String msg)
 			throws MessagingException {  
-        //Crear propiedades    
-        Properties props = new Properties();    
-        props.put("mail.smtp.host", "smtp.gmail.com");    
-        props.put("mail.smtp.socketFactory.port", "465");    
-        props.put("mail.smtp.socketFactory.class",    
-                  "javax.net.ssl.SSLSocketFactory");    
-        props.put("mail.smtp.auth", "true");    
-        props.put("mail.smtp.port", "465");    
-        //Crear Session   
-        Session session = getAuthentication(props, from, password);
-        //Creacion MimeMessage (message object)
+//        //Crear propiedades    
+//        Properties props = new Properties();    
+//        props.put("mail.smtp.host", "smtp.gmail.com");    
+//        props.put("mail.smtp.socketFactory.port", "465");    
+//        props.put("mail.smtp.socketFactory.class",    
+//                  "javax.net.ssl.SSLSocketFactory");    
+//        props.put("mail.smtp.auth", "true");    
+//        props.put("mail.smtp.port", "465");    
+//        //Crear Session   
+//        Session session = getAuthentication(props, from, password);
+//        //Creacion MimeMessage (message object)
         
          MimeMessage message = new MimeMessage(session);    
          message.addRecipient(Message.RecipientType.TO,new InternetAddress(to));    
@@ -58,49 +61,85 @@ public class Mailer {
          //Enviar mensage
          Transport.send(message);  
          return true;   
-	}	
+	}
+	
+	public static Session getConnectionToPOP3(String username, String password) {
+		//Crear propiedades    
+        Properties props = new Properties();    
+        props.put("mail.smtp.host", "smtp.gmail.com");    
+        props.put("mail.smtp.socketFactory.port", "465");    
+        props.put("mail.smtp.socketFactory.class",    
+                  "javax.net.ssl.SSLSocketFactory");    
+        props.put("mail.smtp.auth", "true");    
+        props.put("mail.smtp.port", "465");    
+        //Crear Session   
+        Session session = getAuthentication(props, username, password);
+        //Creacion MimeMessage (message object)
+        return session;
+	}
 	
 	/*
 	 * Metodo que devuelve los correos no leidos
 	 */
-	public static ArrayList<Models.Message> readInboundEmails(String user,
-		      String password) throws MessagingException{
+	public static ArrayList<Models.Message> readInboundEmails(Folder inbox, String user,
+		      String password, boolean getAllEmails) {
 		ArrayList<Models.Message> recievedMessages = new ArrayList<Models.Message>();
-		Session session = Session.getDefaultInstance(new Properties( ));
-	    Store store = session.getStore("imaps");
-	    store.connect("imap.googlemail.com", 993, user, password);
-	    Folder inbox = store.getFolder( "INBOX" );
-	    inbox.open( Folder.READ_ONLY );
+		
+//		Session session = Session.getDefaultInstance(new Properties());
+//	    Store store = session.getStore("imaps");
+//	    store.connect("imap.googlemail.com", 993, user, password);
+//	    Folder inbox = store.getFolder( "INBOX" );
+//	    inbox.open( Folder.READ_ONLY );
 
 	    // Recoger los mensajes no leidos
-	    Message[] messages = inbox.search(
-	        new FlagTerm(new Flags(Flags.Flag.SEEN), false));
+	    Message[] messages;
+		try {
+			if(getAllEmails) {
+				messages = inbox.getMessages(1, 20);
+			} else {
+				messages = inbox.search(
+				    new FlagTerm(new Flags(Flags.Flag.SEEN), false));
 
-	    // Ordenar los mensajes (el primero sera más reciente)
-	    Arrays.sort( messages, ( m1, m2 ) -> {
-	      try {
-	        return m2.getSentDate().compareTo( m1.getSentDate() );
-	      } catch ( MessagingException e ) {
-	        throw new RuntimeException( e );
-	      }
-	    } );
-
-	    for ( Message message : messages ) {
-	      try {
-			try {
-				String messageBody = getTextFromMessage(message);
-				String from = ((InternetAddress)((Address)(message.getFrom()[0]))).getAddress();
-				recievedMessages.add(new Models.Message(message.getSubject(), messageBody, message.getReceivedDate(), from));
-			} catch (IOException e) {
-				System.out.println("Error, in readInboundEmails (IOException) " + e.getMessage());
+				
+				// Ordenar los mensajes (el primero sera más reciente)
+			    Arrays.sort( messages, ( m1, m2 ) -> {
+			      try {
+			        return m2.getSentDate().compareTo( m1.getSentDate() );
+			      } catch ( MessagingException e ) {
+			        throw new RuntimeException( e );
+			      }
+			    } );
 			}
-		} catch (MessagingException e) {
-			System.out.println("Error, in readInboundEmails (MessagingException) " + e.getMessage());
+
+		    for ( Message message : messages ) {
+		      try {
+				try {
+					String messageBody = getTextFromMessage(message);
+					String from = ((InternetAddress)((Address)(message.getFrom()[0]))).getAddress();
+					recievedMessages.add(new Models.Message(message.getSubject(), messageBody, message.getReceivedDate(), from));
+				} catch (IOException e) {
+					System.out.println("Error, in readInboundEmails (IOException) " + e.getMessage());
+				}
+			} catch (MessagingException e) {
+				System.out.println("Error, in readInboundEmails (MessagingException) " + e.getMessage());
+			}
+		    }
+		} catch (MessagingException e1) {
+			System.out.println("Error in readInboundEmails (MessagingException) " + e1.getMessage());
 		}
-	    }
 	    
 	    return recievedMessages;
 	  }
+	
+	public static Folder getConnectionToIMAP(String user, String password) throws MessagingException {
+		Session session = Session.getDefaultInstance(new Properties());
+	    Store store;
+			store = session.getStore("imaps");
+		    store.connect("imap.googlemail.com", 993, user, password);
+		    Folder inbox = store.getFolder( "INBOX" );
+		    inbox.open( Folder.READ_ONLY );
+		    return inbox;
+	}
 	
 	private static String getTextFromMessage(Message message) throws MessagingException, IOException {
 	    String result = "";

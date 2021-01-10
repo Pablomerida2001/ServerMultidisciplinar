@@ -16,6 +16,12 @@ public class DataRequestResponse {
 		this.errorMessage = errorMessage;
 		this.data = data;
 	}
+	
+
+	public DataRequestResponse() {
+		super();
+	}
+
 
 	public void addData(Object obj) {
 		this.data.add(obj);

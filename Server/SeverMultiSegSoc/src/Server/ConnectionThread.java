@@ -3,6 +3,7 @@ package Server;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.sql.ResultSet;
@@ -10,6 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import javax.mail.MessagingException;
+import javax.mail.Session;
 
 import Database.DbConnection;
 import Database.User;
@@ -17,14 +19,19 @@ import Database.Services.Movement.CreateMovement;
 import Database.Services.UserService.ChangeOnlineStatus;
 import Database.Services.UserService.FindUser;
 import Mailer.Mailer;
+import Models.DataRequestResponse;
+import Models.LoginRequest;
+import Models.MovementRequest;
+import Models.SendEmailRequest;
 
 public class ConnectionThread extends Thread{
 	
-	Socket socket;
-	DbConnection dbconnection;
-	DataInputStream dataIS;
-	DataOutputStream dataOS;
-	User user;
+	private Socket socket;
+	private DbConnection dbconnection;
+	private ObjectInputStream dataIS;
+	private ObjectOutputStream dataOS;
+	private User user;
+	private Session session;
 	
 	
 	
@@ -35,76 +42,118 @@ public class ConnectionThread extends Thread{
 	
 	public void run() {
 		try {
-			dataIS = new DataInputStream(socket.getInputStream());
-			dataOS = new DataOutputStream(socket.getOutputStream());
+			dataIS = new ObjectInputStream(socket.getInputStream());
+			dataOS = new ObjectOutputStream(socket.getOutputStream());
 			
-			while(true) {
-				String msg = dataIS.readUTF();
-				String[] values = msg.split("\\*");
 
-				switch (values[0]) {
-				case "0001":
-					login(values[1], values[2]);
-					break;
-				case "0004":
-					returnUserData();
-					break;
-				case "0005":
-					registerMovement(values[1], values[2]);
-					break;
-				}
+			DataRequestResponse request = (DataRequestResponse) dataIS.readObject();
+
+			String userName = ((LoginRequest)request.getData().get(0)).getUserName();
+			String password = ((LoginRequest)request.getData().get(0)).getPassword();
+			
+//			RecieveEmailThread emailThread = new RecieveEmailThread("vbay.sanjose@alumnado.fundacionloyola.net", "67757111", true);
+			
+			try {
+				RecieveEmailThread emailThread = new RecieveEmailThread(userName, password, true, true, dataOS);
+				emailThread.start();
+			} catch (MessagingException e) {
+				DataRequestResponse response = new DataRequestResponse(request.getAction(), "Error", e.getMessage(), null);
+				dataOS.writeObject(response);
 			}
 			
+			session = Mailer.getConnectionToPOP3(userName, password);
 			
+			while(true) {
+				request = (DataRequestResponse) dataIS.readObject();
+//				String[] values = msg.split("\\*");
+
+				switch (request.getAction()) {
+				case "0001":
+					userName = ((LoginRequest)request.getData().get(0)).getUserName();
+					password = ((LoginRequest)request.getData().get(0)).getPassword();
+					login(request.getAction(), userName,password);
+					break;
+				case "0004":
+					returnUserData(request.getAction());
+					break;
+				case "0005":
+					String movement = ((MovementRequest)request.getData().get(0)).getMovement();
+					String date = ((MovementRequest)request.getData().get(0)).getDate();
+					registerMovement(movement, date);
+					break;
+				case "006":
+					SendEmailRequest emailRequest = (SendEmailRequest) request.getData().get(0); 
+					sendEmail(request.getAction(), emailRequest.getFrom(), emailRequest.getPassword(), emailRequest.getTo(),
+							emailRequest.getSub(), emailRequest.getMsg());
+				}
+			}
 			
 		} catch(java.net.SocketException ee) {
 			ChangeOnlineStatus.changeOnlineStatus(false, user.getEmail(), user.getPassword());
 			System.out.println("Client disconnected");
 			return;
 		}catch (IOException e) {
-			e.printStackTrace();
+			System.out.println("Error in ConnectionThread (IOException), " + e.getMessage());
+		} catch (ClassNotFoundException e) {
+			System.out.println("Error in ConnectionThread (ClassNotFoundException), " + e.getMessage());
 		}
 	}
 	
-	public void sendEmail(String from, String password, String to, String sub, String msg) {
+	public void sendEmail(String action, String from, String password, String to, String sub, String msg) {
+		DataRequestResponse response = new DataRequestResponse(action, "", "", null);
 		try {
 			try {
-				boolean result = Mailer.send(from, password, to, sub, msg); // True -> correo enviado
-				dataOS.writeInt(1);
+				boolean result = Mailer.send(session, from, password, to, sub, msg); // True -> correo enviado
+				response.addData(result);
+				dataOS.writeObject(response);
 			} catch (MessagingException e) {
 				System.out.println("Error, in sendEmail (MessagingException) " + e.getMessage());
-				dataOS.writeInt(0);
+				response.setError("Error");
+				response.setErrorMessage(e.getMessage());
+				response.setData(null);
+				dataOS.writeObject(response);
 			}
 		} catch (Exception e) {
-			System.out.println("Error in login. " + e.getMessage());
+			System.out.println("Error in sendEmail, " + e.getMessage());
 		}
 																	
 	}
 	
-	public void login(String email, String passwrd) {
+	public void login(String action, String email, String passwrd) {
+
+		DataRequestResponse response = new DataRequestResponse(action, "", "", null);
 		this.user = FindUser.FindUser(email, passwrd);
-		
 		try {
 			if(user.getId() != -1) { // Si id es igual a -1, entonces usuario no existe
 				if(user.getOnline()) {
-					dataOS.writeInt(1);	
+//					dataOS.writeInt(1);
+					response.setError("Error");
+					response.setErrorMessage("Ya existe una sesión iniciada con esta cuenta");
+					dataOS.writeObject(response);	
 				}else {
-					dataOS.writeInt(0);
+//					dataOS.writeInt(0);
+					dataOS.writeObject(response);
 					ChangeOnlineStatus.changeOnlineStatus(true, user.getEmail(), user.getPassword());
 				}
 			}else {
-				dataOS.writeInt(2);
+//				dataOS.writeInt(2);
+
+				response.setError("Error");
+				response.setErrorMessage("Usuario o contraseña incorrecto");
+				dataOS.writeObject(response);
 			}
 		} catch (Exception e) {
 			System.out.println("Error in login. " + e.getMessage());
 		}
 	}
 		
-	public void returnUserData() {
+	public void returnUserData(String action) {
+		DataRequestResponse response = new DataRequestResponse(action, "", "", null);
 		try {
-			String msg = user.getId() + "*" + user.getName() + "*" + user.getSurname()+
-					"*" +user.getRole() + "*" + user.getEmail() + "*" + user.getPassword();
-			dataOS.writeUTF(msg);
+			response.addData(user);
+//			String msg = user.getId() + "*" + user.getName() + "*" + user.getSurname()+
+//					"*" +user.getRole() + "*" + user.getEmail() + "*" + user.getPassword();
+			dataOS.writeObject(response);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

@@ -14,25 +14,32 @@ public class Main {
 
 	static ServerSocket server; 
 	static Socket socket;
-	static int port = 5000;
+	static int port = 5013;
 	
 	public static void main(String[] args) {
 		
-		RecieveEmailThread emailThread = new RecieveEmailThread("vbay.sanjose@alumnado.fundacionloyola.net", "67757111", true);
-		emailThread.start();
-		
-//		DbConnection dbconnection = new DbConnection();
+//		RecieveEmailThread emailThread;
 //		try {
-//			server = new ServerSocket(port);
-//			while(true) {
-//					socket = new Socket();		
-//					System.out.println("Waiting connection...");
-//					socket = server.accept();
-//					ConnectionThread connection = new ConnectionThread(socket, dbconnection);
-//					connection.start();
-//			}
-//		} catch (IOException e) {
+//			emailThread = new RecieveEmailThread("vbay.sanjose@alumnado.fundacionloyola.net", "67757111", true, true, null);
+//			emailThread.start();
+//		} catch (MessagingException e) {
+//			// TODO Auto-generated catch block
 //			e.printStackTrace();
-//		}	
+//		}
+		
+		
+		DbConnection dbconnection = new DbConnection();
+		try {
+			server = new ServerSocket(port);
+			while(true) {
+					socket = new Socket();		
+					System.out.println("Waiting connection...");
+					socket = server.accept();
+					ConnectionThread connection = new ConnectionThread(socket, dbconnection);
+					connection.start();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}	
 	}
 }

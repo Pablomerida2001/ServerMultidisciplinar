@@ -1,6 +1,8 @@
 package Models;
 
-public class MovementRequest {
+import java.io.Serializable;
+
+public class MovementRequest implements Serializable{
 	private String movement;
 	private String date;
 	

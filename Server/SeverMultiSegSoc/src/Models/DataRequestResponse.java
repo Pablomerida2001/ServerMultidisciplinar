@@ -1,8 +1,9 @@
 package Models;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class DataRequestResponse {
+public class DataRequestResponse implements Serializable{
 
 	private String action;
 	private String error;

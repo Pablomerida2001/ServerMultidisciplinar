@@ -1,8 +1,9 @@
 package Models;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class Message {
+public class Message implements Serializable{
 	private int messageNumber;
 	private String subject;
 	private String messageBody;

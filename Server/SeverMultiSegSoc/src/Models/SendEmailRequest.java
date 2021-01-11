@@ -1,6 +1,8 @@
 package Models;
 
-public class SendEmailRequest {
+import java.io.Serializable;
+
+public class SendEmailRequest implements Serializable{
 	private String from;
 	private String password;
 	private String to;

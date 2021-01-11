@@ -44,24 +44,25 @@ public class ConnectionThread extends Thread{
 		try {
 			dataIS = new ObjectInputStream(socket.getInputStream());
 			dataOS = new ObjectOutputStream(socket.getOutputStream());
-			
+			DataRequestResponse request;
 
-			DataRequestResponse request = (DataRequestResponse) dataIS.readObject();
+//			DataRequestResponse request = (DataRequestResponse) dataIS.readObject();
+			//System.out.println(((LoginRequest)request.getData().get(0)).getUserName());
 
-			String userName = ((LoginRequest)request.getData().get(0)).getUserName();
-			String password = ((LoginRequest)request.getData().get(0)).getPassword();
+//			String userName = ((LoginRequest)request.getData().get(0)).getUserName();
+//			String password = ((LoginRequest)request.getData().get(0)).getPassword();
 			
 //			RecieveEmailThread emailThread = new RecieveEmailThread("vbay.sanjose@alumnado.fundacionloyola.net", "67757111", true);
 			
-			try {
-				RecieveEmailThread emailThread = new RecieveEmailThread(userName, password, true, true, dataOS);
-				emailThread.start();
-			} catch (MessagingException e) {
-				DataRequestResponse response = new DataRequestResponse(request.getAction(), "Error", e.getMessage(), null);
-				dataOS.writeObject(response);
-			}
+//			try {
+//				RecieveEmailThread emailThread = new RecieveEmailThread(userName, password, true, true, dataOS);
+//				emailThread.start();
+//			} catch (MessagingException e) {
+//				DataRequestResponse response = new DataRequestResponse(request.getAction(), "Error", e.getMessage(), null);
+//				dataOS.writeObject(response);
+//			}
 			
-			session = Mailer.getConnectionToPOP3(userName, password);
+			//session = Mailer.getConnectionToPOP3(userName, password);
 			
 			while(true) {
 				request = (DataRequestResponse) dataIS.readObject();
@@ -69,8 +70,10 @@ public class ConnectionThread extends Thread{
 
 				switch (request.getAction()) {
 				case "0001":
-					userName = ((LoginRequest)request.getData().get(0)).getUserName();
-					password = ((LoginRequest)request.getData().get(0)).getPassword();
+					String userName = ((LoginRequest)request.getData().get(0)).getUserName();
+					String password = ((LoginRequest)request.getData().get(0)).getPassword();
+					System.out.println(userName);
+					System.out.println(password);
 					login(request.getAction(), userName,password);
 					break;
 				case "0004":
@@ -120,7 +123,6 @@ public class ConnectionThread extends Thread{
 	}
 	
 	public void login(String action, String email, String passwrd) {
-
 		DataRequestResponse response = new DataRequestResponse(action, "", "", null);
 		this.user = FindUser.FindUser(email, passwrd);
 		try {
@@ -132,6 +134,7 @@ public class ConnectionThread extends Thread{
 					dataOS.writeObject(response);	
 				}else {
 //					dataOS.writeInt(0);
+					System.out.println("si");
 					dataOS.writeObject(response);
 					ChangeOnlineStatus.changeOnlineStatus(true, user.getEmail(), user.getPassword());
 				}
@@ -148,11 +151,9 @@ public class ConnectionThread extends Thread{
 	}
 		
 	public void returnUserData(String action) {
-		DataRequestResponse response = new DataRequestResponse(action, "", "", null);
+		DataRequestResponse response = new DataRequestResponse(action, "", "", new ArrayList<Object>());
 		try {
 			response.addData(user);
-//			String msg = user.getId() + "*" + user.getName() + "*" + user.getSurname()+
-//					"*" +user.getRole() + "*" + user.getEmail() + "*" + user.getPassword();
 			dataOS.writeObject(response);
 		} catch (IOException e) {
 			e.printStackTrace();

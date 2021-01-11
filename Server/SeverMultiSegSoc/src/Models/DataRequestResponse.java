@@ -15,7 +15,6 @@ public class DataRequestResponse implements Serializable{
 		this.action = action;
 		this.error = error;
 		this.errorMessage = errorMessage;
-		this.data = data;
 	}
 	
 

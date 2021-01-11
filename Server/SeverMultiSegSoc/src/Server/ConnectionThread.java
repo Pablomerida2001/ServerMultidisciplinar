@@ -45,28 +45,11 @@ public class ConnectionThread extends Thread{
 			dataIS = new ObjectInputStream(socket.getInputStream());
 			dataOS = new ObjectOutputStream(socket.getOutputStream());
 			DataRequestResponse request;
-
-//			DataRequestResponse request = (DataRequestResponse) dataIS.readObject();
-			//System.out.println(((LoginRequest)request.getData().get(0)).getUserName());
-
-//			String userName = ((LoginRequest)request.getData().get(0)).getUserName();
-//			String password = ((LoginRequest)request.getData().get(0)).getPassword();
 			
 //			RecieveEmailThread emailThread = new RecieveEmailThread("vbay.sanjose@alumnado.fundacionloyola.net", "67757111", true);
 			
-//			try {
-//				RecieveEmailThread emailThread = new RecieveEmailThread(userName, password, true, true, dataOS);
-//				emailThread.start();
-//			} catch (MessagingException e) {
-//				DataRequestResponse response = new DataRequestResponse(request.getAction(), "Error", e.getMessage(), null);
-//				dataOS.writeObject(response);
-//			}
-			
-			//session = Mailer.getConnectionToPOP3(userName, password);
-			
 			while(true) {
 				request = (DataRequestResponse) dataIS.readObject();
-//				String[] values = msg.split("\\*");
 
 				switch (request.getAction()) {
 				case "0001":
@@ -102,6 +85,17 @@ public class ConnectionThread extends Thread{
 		}
 	}
 	
+	public void startEmail() {
+		try {
+			RecieveEmailThread emailThread = new RecieveEmailThread(this.user.getEmail(), this.user.getPassword(), true, true, dataOS);
+			emailThread.start();
+		} catch (MessagingException e) {
+//			DataRequestResponse response = new DataRequestResponse(request.getAction(), "Error", e.getMessage(), null);
+//			dataOS.writeObject(response);
+		}
+		session = Mailer.getConnectionToPOP3(this.user.getEmail(), this.user.getPassword());
+	}
+	
 	public void sendEmail(String action, String from, String password, String to, String sub, String msg) {
 		DataRequestResponse response = new DataRequestResponse(action, "", "", null);
 		try {
@@ -128,19 +122,16 @@ public class ConnectionThread extends Thread{
 		try {
 			if(user.getId() != -1) { // Si id es igual a -1, entonces usuario no existe
 				if(user.getOnline()) {
-//					dataOS.writeInt(1);
 					response.setError("Error");
 					response.setErrorMessage("Ya existe una sesión iniciada con esta cuenta");
 					dataOS.writeObject(response);	
 				}else {
-//					dataOS.writeInt(0);
 					System.out.println("si");
 					dataOS.writeObject(response);
 					ChangeOnlineStatus.changeOnlineStatus(true, user.getEmail(), user.getPassword());
+					startEmail();
 				}
 			}else {
-//				dataOS.writeInt(2);
-
 				response.setError("Error");
 				response.setErrorMessage("Usuario o contraseña incorrecto");
 				dataOS.writeObject(response);

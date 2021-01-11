@@ -52,6 +52,8 @@ public class RecieveEmailThread extends Thread {
 			}
 			}catch (Exception e) {
 				System.out.println("Error in RecieveEmailThread, " + e.getMessage());
+				//error de inicio de sesión email
+				userStillOnLine = false;
 			}
 			try {
 				this.sleep(30000);

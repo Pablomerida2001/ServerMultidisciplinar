@@ -55,8 +55,6 @@ public class ConnectionThread extends Thread{
 				case "0001":
 					String userName = ((LoginRequest)request.getData().get(0)).getUserName();
 					String password = ((LoginRequest)request.getData().get(0)).getPassword();
-					System.out.println(userName);
-					System.out.println(password);
 					login(request.getAction(), userName,password);
 					break;
 				case "0004":

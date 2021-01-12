@@ -1,13 +1,9 @@
 package Server;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 
 import javax.mail.MessagingException;
@@ -15,10 +11,13 @@ import javax.mail.Session;
 
 import Database.DbConnection;
 import Database.User;
+import Database.Services.GetManualContent.GetManualContent;
 import Database.Services.Movement.CreateMovement;
 import Database.Services.UserService.ChangeOnlineStatus;
 import Database.Services.UserService.FindUser;
 import Mailer.Mailer;
+import Models.ContentModel;
+import Models.ContentRequest;
 import Models.DataRequestResponse;
 import Models.LoginRequest;
 import Models.MovementRequest;
@@ -32,8 +31,6 @@ public class ConnectionThread extends Thread{
 	private ObjectOutputStream dataOS;
 	private User user;
 	private Session session;
-	
-	
 	
 	public ConnectionThread(Socket socket, DbConnection dbconnection) {
 		this.socket = socket;
@@ -55,7 +52,16 @@ public class ConnectionThread extends Thread{
 				case "0001":
 					String userName = ((LoginRequest)request.getData().get(0)).getUserName();
 					String password = ((LoginRequest)request.getData().get(0)).getPassword();
-					login(request.getAction(), userName,password);
+					login(request.getAction(), userName,password, true);
+					break;
+				case "0002":
+					userName = ((LoginRequest)request.getData().get(0)).getUserName();
+					password = ((LoginRequest)request.getData().get(0)).getPassword();
+					login(request.getAction(), userName,password, false);
+					break;
+				case "0003":
+					returnAndroidContent(((ContentRequest)request.getData().get(0)).getIndex(),
+							((ContentRequest)request.getData().get(0)).getLenguage());
 					break;
 				case "0004":
 					returnUserData(request.getAction());
@@ -65,10 +71,11 @@ public class ConnectionThread extends Thread{
 					String date = ((MovementRequest)request.getData().get(0)).getDate();
 					registerMovement(movement, date);
 					break;
-				case "006":
+				case "0006":
 					SendEmailRequest emailRequest = (SendEmailRequest) request.getData().get(0); 
 					sendEmail(request.getAction(), emailRequest.getFrom(), emailRequest.getPassword(), emailRequest.getTo(),
 							emailRequest.getSub(), emailRequest.getMsg());
+					break;
 				}
 			}
 			
@@ -114,20 +121,22 @@ public class ConnectionThread extends Thread{
 																	
 	}
 	
-	public void login(String action, String email, String passwrd) {
+	public void login(String action, String email, String passwrd, boolean checkOnlineStatus) {
 		DataRequestResponse response = new DataRequestResponse(action, "", "", null);
 		this.user = FindUser.FindUser(email, passwrd);
 		try {
 			if(user.getId() != -1) { // Si id es igual a -1, entonces usuario no existe
-				if(user.getOnline()) {
+				if(checkOnlineStatus && user.getOnline()) {
 					response.setError("Error");
 					response.setErrorMessage("Ya existe una sesión iniciada con esta cuenta");
 					dataOS.writeObject(response);	
 				}else {
 					System.out.println("si");
 					dataOS.writeObject(response);
-					ChangeOnlineStatus.changeOnlineStatus(true, user.getEmail(), user.getPassword());
-					startEmail();
+					if(checkOnlineStatus) {
+						ChangeOnlineStatus.changeOnlineStatus(true, user.getEmail(), user.getPassword());
+						startEmail();
+					}
 				}
 			}else {
 				response.setError("Error");
@@ -139,6 +148,20 @@ public class ConnectionThread extends Thread{
 		}
 	}
 		
+	public void returnAndroidContent(int index, String lenguage) {
+		String content = GetManualContent.getContent(index, lenguage);
+		ContentModel textData = new ContentModel(content);
+		System.out.println(content);
+		DataRequestResponse response = new DataRequestResponse();
+		response.setAction("0003");
+		response.addData(textData);
+		try {
+			dataOS.writeObject(response);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public void returnUserData(String action) {
 		DataRequestResponse response = new DataRequestResponse(action, "", "", new ArrayList<Object>());
 		try {

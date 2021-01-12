@@ -28,7 +28,7 @@ public class RecieveEmailThread extends Thread {
 		this.userStillOnLine = userStillOnLine;
 		this.getAllEmails = getAllEmails;
 		this.outputStream = outputStream;
-//		this.inbox = Mailer.getConnectionToIMAP(user, password);
+		this.inbox = Mailer.getConnectionToIMAP(user, password);
 	}
 	
 	@Override

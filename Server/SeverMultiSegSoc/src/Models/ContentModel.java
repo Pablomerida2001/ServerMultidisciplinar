@@ -1,6 +1,8 @@
 package Models;
 
-public class ContentModel {
+import java.io.Serializable;
+
+public class ContentModel implements Serializable{
 
     private String text;
 

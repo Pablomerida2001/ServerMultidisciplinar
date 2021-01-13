@@ -151,7 +151,6 @@ public class ConnectionThread extends Thread{
 	public void returnAndroidContent(int index, String lenguage) {
 		String content = GetManualContent.getContent(index, lenguage);
 		ContentModel textData = new ContentModel(content);
-		System.out.println(content);
 		DataRequestResponse response = new DataRequestResponse();
 		response.setAction("0003");
 		response.addData(textData);

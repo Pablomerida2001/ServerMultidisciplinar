@@ -22,6 +22,7 @@ import Mailer.Mailer;
 import Models.DataRequestResponse;
 import Models.LoginRequest;
 import Models.MovementRequest;
+import Models.RecieveEmailRequest;
 import Models.SendEmailRequest;
 
 public class ConnectionThread extends Thread{
@@ -65,10 +66,12 @@ public class ConnectionThread extends Thread{
 					String date = ((MovementRequest)request.getData().get(0)).getDate();
 					registerMovement(movement, date);
 					break;
-				case "006":
+				case "0006":
 					SendEmailRequest emailRequest = (SendEmailRequest) request.getData().get(0); 
 					sendEmail(request.getAction(), emailRequest.getFrom(), emailRequest.getPassword(), emailRequest.getTo(),
 							emailRequest.getSub(), emailRequest.getMsg());
+				case "0007":
+					startRecievingEmail((RecieveEmailRequest) request.getData().get(0));
 				}
 			}
 			
@@ -83,21 +86,22 @@ public class ConnectionThread extends Thread{
 		}
 	}
 	
-	public void startEmail() {
+	public void startRecievingEmail(RecieveEmailRequest emailRequest) {
 		try {
-			RecieveEmailThread emailThread = new RecieveEmailThread(this.user.getEmail(), this.user.getPassword(), true, true, dataOS);
+			RecieveEmailThread emailThread = new RecieveEmailThread(this.user.getEmail(), this.user.getPassword(), 
+					emailRequest.isGetAllEmail(), emailRequest.isUserOnLine(), dataOS);
 			emailThread.start();
 		} catch (MessagingException e) {
 //			DataRequestResponse response = new DataRequestResponse(request.getAction(), "Error", e.getMessage(), null);
 //			dataOS.writeObject(response);
 		}
-		session = Mailer.getConnectionToPOP3(this.user.getEmail(), this.user.getPassword());
 	}
 	
 	public void sendEmail(String action, String from, String password, String to, String sub, String msg) {
 		DataRequestResponse response = new DataRequestResponse(action, "", "", null);
 		try {
 			try {
+				session = Mailer.getConnectionToPOP3(from, password);
 				boolean result = Mailer.send(session, from, password, to, sub, msg); // True -> correo enviado
 				response.addData(result);
 				dataOS.writeObject(response);
@@ -105,7 +109,6 @@ public class ConnectionThread extends Thread{
 				System.out.println("Error, in sendEmail (MessagingException) " + e.getMessage());
 				response.setError("Error");
 				response.setErrorMessage(e.getMessage());
-				response.setData(null);
 				dataOS.writeObject(response);
 			}
 		} catch (Exception e) {
@@ -127,7 +130,6 @@ public class ConnectionThread extends Thread{
 					System.out.println("si");
 					dataOS.writeObject(response);
 					ChangeOnlineStatus.changeOnlineStatus(true, user.getEmail(), user.getPassword());
-					startEmail();
 				}
 			}else {
 				response.setError("Error");

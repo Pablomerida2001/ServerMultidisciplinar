@@ -20,7 +20,9 @@ import Models.ContentModel;
 import Models.ContentRequest;
 import Models.DataRequestResponse;
 import Models.LoginRequest;
+import Models.Message;
 import Models.MovementRequest;
+import Models.RecieveEmailRequest;
 import Models.SendEmailRequest;
 
 public class ConnectionThread extends Thread{
@@ -31,6 +33,8 @@ public class ConnectionThread extends Thread{
 	private ObjectOutputStream dataOS;
 	private User user;
 	private Session session;
+	private RecieveEmailThread emailThread;
+
 	
 	public ConnectionThread(Socket socket, DbConnection dbconnection) {
 		this.socket = socket;
@@ -76,11 +80,23 @@ public class ConnectionThread extends Thread{
 					sendEmail(request.getAction(), emailRequest.getFrom(), emailRequest.getPassword(), emailRequest.getTo(),
 							emailRequest.getSub(), emailRequest.getMsg());
 					break;
+					
+				case "0007":
+					startRecievingEmail((RecieveEmailRequest) request.getData().get(0));
+					break;
+				case "0008":
+					changeStateOfRecievingEmails(((RecieveEmailRequest) request.getData().get(0)).isGetAllEmail());
+					break;
+				case "0009":
+					flagAsSeen((Message) request.getData().get(0));
+					break;
 				}
 			}
 			
 		} catch(java.net.SocketException ee) {
-			ChangeOnlineStatus.changeOnlineStatus(false, user.getEmail(), user.getPassword());
+			if(user != null) {
+				ChangeOnlineStatus.changeOnlineStatus(false, user.getEmail(), user.getPassword());
+			}
 			System.out.println("Client disconnected");
 			return;
 		}catch (IOException e) {
@@ -90,29 +106,47 @@ public class ConnectionThread extends Thread{
 		}
 	}
 	
-	public void startEmail() {
+	public void changeStateOfRecievingEmails(boolean allEmails) {
+		emailThread.setUserStillOnLine(false);
+		emailThread.interrupt();
 		try {
-			RecieveEmailThread emailThread = new RecieveEmailThread(this.user.getEmail(), this.user.getPassword(), true, true, dataOS);
+			emailThread = new RecieveEmailThread(this.user.getEmail(), this.user.getPassword(), 
+					allEmails, true, dataOS);
 			emailThread.start();
 		} catch (MessagingException e) {
-//			DataRequestResponse response = new DataRequestResponse(request.getAction(), "Error", e.getMessage(), null);
-//			dataOS.writeObject(response);
+			System.out.println("Error in changeStateOfRecievingEmails " + e.getMessage());
 		}
-		session = Mailer.getConnectionToPOP3(this.user.getEmail(), this.user.getPassword());
+	}
+
+	public void flagAsSeen(Message email) {
+		try {
+			Mailer.flagAsSeen(email, this.user.getEmail(), this.user.getPassword());
+		} catch (MessagingException e) {
+			System.out.println("Error in changeStateOfRecievingEmails " + e.getMessage());
+		}
+	}
+	
+	public void startRecievingEmail(RecieveEmailRequest emailRequest) {
+		try {
+			emailThread = new RecieveEmailThread(this.user.getEmail(), this.user.getPassword(), 
+				emailRequest.isGetAllEmail(), emailRequest.isUserOnLine(), dataOS);
+			emailThread.start();
+		} catch (MessagingException e) {}	
 	}
 	
 	public void sendEmail(String action, String from, String password, String to, String sub, String msg) {
 		DataRequestResponse response = new DataRequestResponse(action, "", "", null);
 		try {
 			try {
-				boolean result = Mailer.send(session, from, password, to, sub, msg); // True -> correo enviado
+				session = Mailer.getConnectionToPOP3(from, password);
+				boolean result = Mailer.send(session, from, password, to, sub, msg); 
+				// True -> correo enviado
 				response.addData(result);
 				dataOS.writeObject(response);
 			} catch (MessagingException e) {
 				System.out.println("Error, in sendEmail (MessagingException) " + e.getMessage());
 				response.setError("Error");
 				response.setErrorMessage(e.getMessage());
-				response.setData(null);
 				dataOS.writeObject(response);
 			}
 		} catch (Exception e) {
@@ -135,7 +169,6 @@ public class ConnectionThread extends Thread{
 					dataOS.writeObject(response);
 					if(checkOnlineStatus) {
 						ChangeOnlineStatus.changeOnlineStatus(true, user.getEmail(), user.getPassword());
-						startEmail();
 					}
 				}
 			}else {

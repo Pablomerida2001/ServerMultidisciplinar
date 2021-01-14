@@ -71,8 +71,6 @@ public class Mailer {
 	
 	
 	
-	
-	
 	/*
 	 * IMAP Connection
 	 */
@@ -95,8 +93,11 @@ public class Mailer {
 	    Message[] messages;
 		try {
 			if(getAllEmails) {
-				messages = inbox.getMessages(1, 20);
-			} else {
+				try {
+					messages = inbox.getMessages(1, 20);
+				} catch (Exception e) {// Se recogen todos los correos cuando no hay 20 correos
+					messages = inbox.getMessages();
+				}			} else {
 				messages = inbox.search(
 				    new FlagTerm(new Flags(Flags.Flag.SEEN), false));
 
@@ -200,7 +201,7 @@ public class Mailer {
 
 	//Comprobar datos de usuario
 	private static Session getAuthentication(Properties properties, String user, String password) {
-		return Session.getDefaultInstance(properties,    
+		return Session.getInstance(properties,    
 		         new Authenticator() {
 	   	    protected PasswordAuthentication getPasswordAuthentication() {
 	   	        return new PasswordAuthentication(user, password);

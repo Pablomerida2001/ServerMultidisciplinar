@@ -1,5 +1,6 @@
 package Server;
 
+import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
@@ -38,12 +39,13 @@ public class RecieveEmailThread extends Thread {
 			try {
 			    this.inbox = Mailer.getConnectionToIMAP(user, password);
 				email = Mailer.readInboundEmails(inbox, user, password, getAllEmails);
+				this.inbox.close(true); // Es necesario cerrar cada conexion, ya que gmail no permite varias conexiones
 			if (email.size() > 0) { // 
 				response.addData(email);
 				System.out.println(email.size());
-				if(email.size() > 1) {
-					Mailer.flagAsSeen(email.get(0), user, password);
-				}
+//				if(email.size() > 1) {
+//					Mailer.flagAsSeen(email.get(0), user, password);
+//				}
 				outputStream.writeObject(response);
 			} else {
 				response.addData(email);
@@ -51,9 +53,22 @@ public class RecieveEmailThread extends Thread {
 				outputStream.writeObject(response);
 			}
 			}catch (Exception e) {
-				System.out.println("Error in RecieveEmailThread, " + e.getMessage());
-				//error de inicio de sesión email
-				userStillOnLine = false;
+				if(e.getMessage().contains("[AUTHENTICATIONFAILED]")) {
+					System.out.println("Inncorrect email or password ");
+					userStillOnLine = false;
+					response.setError("Error");
+					response.setErrorMessage("La contraseña o email es incorrecta");
+					try {
+						outputStream.writeObject(response);
+					} catch (IOException e1) {
+					}
+					break;
+				} else if(e.getMessage().contains("[ALERT]")){
+					System.out.println("Error in RecieveEmailThread, " + e.getMessage());
+				} else {
+					userStillOnLine = false;
+					System.out.println("Error in RecieveEmailThread, " + e.getMessage());
+				}
 			}
 			try {
 				this.sleep(30000);
@@ -75,5 +90,7 @@ public class RecieveEmailThread extends Thread {
 		this.userStillOnLine = userStillOnLine;
 	}
 	
-	
+	public void setGetAllEmails(boolean getAllEmails) {
+		this.getAllEmails = getAllEmails;
+	}
 }

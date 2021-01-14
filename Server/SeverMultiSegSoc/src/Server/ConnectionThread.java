@@ -21,6 +21,7 @@ import Database.Services.UserService.FindUser;
 import Mailer.Mailer;
 import Models.DataRequestResponse;
 import Models.LoginRequest;
+import Models.Message;
 import Models.MovementRequest;
 import Models.RecieveEmailRequest;
 import Models.SendEmailRequest;
@@ -33,6 +34,7 @@ public class ConnectionThread extends Thread{
 	private ObjectOutputStream dataOS;
 	private User user;
 	private Session session;
+	private RecieveEmailThread emailThread;
 	
 	
 	
@@ -70,8 +72,16 @@ public class ConnectionThread extends Thread{
 					SendEmailRequest emailRequest = (SendEmailRequest) request.getData().get(0); 
 					sendEmail(request.getAction(), emailRequest.getFrom(), emailRequest.getPassword(), emailRequest.getTo(),
 							emailRequest.getSub(), emailRequest.getMsg());
+					break;
 				case "0007":
 					startRecievingEmail((RecieveEmailRequest) request.getData().get(0));
+					break;
+				case "0008":
+					changeStateOfRecievingEmails(((RecieveEmailRequest) request.getData().get(0)).isGetAllEmail());
+					break;
+				case "0009":
+					flagAsSeen((Message) request.getData().get(0));
+					break;
 				}
 			}
 			
@@ -86,9 +96,29 @@ public class ConnectionThread extends Thread{
 		}
 	}
 	
+	public void changeStateOfRecievingEmails(boolean allEmails) {
+		emailThread.setUserStillOnLine(false);
+		emailThread.interrupt();
+		try {
+			emailThread = new RecieveEmailThread(this.user.getEmail(), this.user.getPassword(), 
+					allEmails, true, dataOS);
+			emailThread.start();
+		} catch (MessagingException e) {
+			System.out.println("Error in changeStateOfRecievingEmails " + e.getMessage());
+		}
+	}
+	
+	public void flagAsSeen(Message email) {
+		try {
+			Mailer.flagAsSeen(email, this.user.getEmail(), this.user.getPassword());
+		} catch (MessagingException e) {
+			System.out.println("Error in changeStateOfRecievingEmails " + e.getMessage());
+		}
+	}
+	
 	public void startRecievingEmail(RecieveEmailRequest emailRequest) {
 		try {
-			RecieveEmailThread emailThread = new RecieveEmailThread(this.user.getEmail(), this.user.getPassword(), 
+			emailThread = new RecieveEmailThread(this.user.getEmail(), this.user.getPassword(), 
 					emailRequest.isGetAllEmail(), emailRequest.isUserOnLine(), dataOS);
 			emailThread.start();
 		} catch (MessagingException e) {

@@ -92,6 +92,10 @@ public class RecieveEmailThread extends Thread {
 	public void setUserStillOnLine(boolean userStillOnLine) {
 		this.userStillOnLine = userStillOnLine;
 	}
+
+	public void setGetAllEmails(boolean getAllEmails) {
+		this.getAllEmails = getAllEmails;
+	}
 	
 	
 }

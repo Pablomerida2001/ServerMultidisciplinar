@@ -1,6 +1,13 @@
 package Server;
 /*
+ * Clase ConnectionThread
+ * 
  * Metodo que gestiona las peticiones de un Cliente determinado
+ * 
+ * @Author Grupo2
+ * 
+ * @Version 1.0
+ * 
  */
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -12,7 +19,6 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 
 import Database.DbConnection;
-import Database.User;
 import Database.Services.GetManualContent.GetManualContent;
 import Database.Services.Movement.CreateMovement;
 import Database.Services.UserService.ChangeOnlineStatus;
@@ -26,6 +32,7 @@ import Models.Message;
 import Models.MovementRequest;
 import Models.RecieveEmailRequest;
 import Models.SendEmailRequest;
+import Models.User;
 
 public class ConnectionThread extends Thread{
 	
@@ -35,7 +42,10 @@ public class ConnectionThread extends Thread{
 	private User user;
 	private Session session;
 	private RecieveEmailThread emailThread;
-	
+	/**
+     * Constructor con 1 parametro
+     * @param socket - type Socket - socket
+     */
 	public ConnectionThread(Socket socket) {
 		this.socket = socket;
 	}
@@ -105,6 +115,8 @@ public class ConnectionThread extends Thread{
 	
 	/*
 	 * Cambia el hilo para recibir determinado estado de correos 
+     * @param AllEmails - type boolean - True -> recoget todos los correos
+     * 										False -> recoget solo los correos no leidos
 	 */
 	public void changeStateOfRecievingEmails(boolean allEmails) {
 		emailThread.setUserStillOnLine(false);
@@ -120,6 +132,7 @@ public class ConnectionThread extends Thread{
 	
 	/*
 	 * Actualizar el estado de correo (de 'No leido' a 'Leido')
+     * @param email - type Message - True -> un correo
 	 */
 	public void flagAsSeen(Message email) {
 		try {
@@ -129,6 +142,10 @@ public class ConnectionThread extends Thread{
 		}
 	}
 	
+	/*
+	 * Ejecuta el hilo que recoge los correo del servidor
+     * @param emailRequest - type RecieveEmailRequest - los datos necesario para establecer conecion
+	 */
 	public void startRecievingEmail(RecieveEmailRequest emailRequest) {
 		try {
 			emailThread = new RecieveEmailThread(this.user.getEmail(), this.user.getPassword(), 
@@ -139,6 +156,17 @@ public class ConnectionThread extends Thread{
 		}
 	}
 	
+	/*
+	 * Metodo que envie el correo
+     * @param session - type Session - conecion a POP3 server
+     * @param from - type String - email del usuario
+     * @param password - type String - contraseña del usuario
+     * @param to - type String - email a donde hay que enviar correo
+     * @param sub - type String - asunto del correo
+     * @param msg - type String - mensaje
+     * @return voolean -> True -> se ha enviado correctamente
+     * 					throw new MessagingException -> se ha ocurrido error
+	 */
 	public void sendEmail(String action, String from, String password, String to, String sub, String msg) {
 		DataRequestResponse response = new DataRequestResponse(action, "", "", null);
 		try {
@@ -159,6 +187,14 @@ public class ConnectionThread extends Thread{
 																	
 	}
 	
+	/*
+	 * Metodo para hacer un login del usuario
+     * @param action - type String - codigo de accion
+     * @param email - type String - email del usuario
+     * @param password - type String - contraseña del usuario
+     * @param checkOnlineStatus - type boolean - True -> usuario online
+     * 											False -> usuario offline
+	 */
 	public void login(String action, String email, String passwrd, boolean checkOnlineStatus) {
 		DataRequestResponse response = new DataRequestResponse(action, "", "", null);
 		this.user = FindUser.FindUser(email, passwrd);
@@ -185,6 +221,12 @@ public class ConnectionThread extends Thread{
 		}
 	}
 		
+	/**
+     * Metodo que consulta el contenido del manual del android
+     * @param index - type int - index del contenido que hay que sacar
+     * @param lenguage - type String - lenguaje en que hay que sacar
+     * @return String -> el content (el texto)
+     */
 	public void returnAndroidContent(int index, String lenguage) {
 		String content = GetManualContent.getContent(index, lenguage);
 		ContentModel textData = new ContentModel(content);
@@ -198,6 +240,10 @@ public class ConnectionThread extends Thread{
 		}
 	}
 	
+	/**
+     * Metodo que consulta los datos del usuario
+     * @param action - type String - codigo de accion
+     */
 	public void returnUserData(String action) {
 		DataRequestResponse response = new DataRequestResponse(action, "", "", new ArrayList<Object>());
 		try {
@@ -207,7 +253,11 @@ public class ConnectionThread extends Thread{
 			e.printStackTrace();
 		}
 	}
-	
+	/**
+     * Metodo que registra el movimiento del usuario en la base de datos
+     * @param movement - type String - movement que el usuario ha realizado
+     * @param date - type String - fecha y hora de realizacion
+     */
 	public void registerMovement(String movement, String date) {
 		CreateMovement.InsertMovement(user.getId(),user.getRole(), movement, date);
 	}

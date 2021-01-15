@@ -1,5 +1,14 @@
 package Models;
-
+/*
+ * Clase ContentRequest
+ * 
+ * Modelo para el content Para Android
+ *  
+ * @Author Grupo2
+ * 
+ * @Version 1.0
+ * 
+ */
 import java.io.Serializable;
 
 public class ContentRequest implements Serializable{
@@ -12,6 +21,9 @@ public class ContentRequest implements Serializable{
 		this.lenguage = lenguage;
 	}
 	
+	/*
+	 * Getters y Setters
+	 */
 	public int getIndex() {
 		return index;
 	}

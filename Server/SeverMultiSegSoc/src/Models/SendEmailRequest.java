@@ -1,5 +1,14 @@
 package Models;
-
+/*
+ * Clase SendEmailRequest
+ * 
+ * Modelo que se uteliza para guardar los datos del correo que hay que enviar
+ *  
+ * @Author Grupo2
+ * 
+ * @Version 1.0
+ * 
+ */
 import java.io.Serializable;
 
 public class SendEmailRequest implements Serializable{
@@ -9,6 +18,14 @@ public class SendEmailRequest implements Serializable{
 	private String sub;
 	private String msg;
 	
+	/*
+	 * Constructor con 5 parametros
+     * @param from - type String - email del usuario
+     * @param password - type String - contraseña del usuario
+     * @param to - type String - email a donde hay que enviar correo
+     * @param sub - type String - asunto del correo
+     * @param msg - type String - mensaje
+	 */
 	public SendEmailRequest(String from, String password, String to, String sub, String msg) {
 		super();
 		this.from = from;
@@ -18,10 +35,16 @@ public class SendEmailRequest implements Serializable{
 		this.msg = msg;
 	}
 
+	/**
+     * Constructor por defecto
+     */
 	public SendEmailRequest() {
 		super();
 	}
 
+	/*
+	 * Getters y Setters
+	 */
 	public String getFrom() {
 		return from;
 	}

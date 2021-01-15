@@ -1,7 +1,14 @@
 package Server;
 /*
+ * Clase Main
+ * 
  * Punto de entrada de Server
- * Crear nuevos sockets y asigna a un hilo que es responsable de gestion de esta conecion
+ * Crea nuevos sockets y asigna a un hilo que es responsable de gestion de esta conecion
+ * 
+ * @Author Grupo2
+ * 
+ * @Version 1.0
+ * 
  */
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -13,6 +20,9 @@ public class Main {
 	static Socket socket;
 	static int port = 5013;
 	
+	/*
+	 * Punto de entrada
+	 */
 	public static void main(String[] args) {
 		try {
 			//se inicia el servidor en el puerto 5013

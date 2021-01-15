@@ -1,7 +1,14 @@
 package Mailer;
 /*
+ * Clase FindUser
+ * 
  * Clase que envia, recibe y modifique los correos
  * El recibo de correo puede ser de dos tipo, de correos con estado 'No leido' y 'Leido'
+ * 
+ * @Author Grupo2
+ * 
+ * @Version 1.0
+ * 
  */
 
 import javax.mail.MessagingException;
@@ -40,6 +47,9 @@ public class Mailer {
 	
 	/*
 	 * POP3 Connection
+     * @param username - type String - email del usuario
+     * @param password - type String - contraseña del usuario
+     * @return Session -> conecion al servidor POP3
 	 */
 	public static Session getConnectionToPOP3(String username, String password) {
 		//Crear propiedades    
@@ -57,6 +67,14 @@ public class Mailer {
 	}
 	/*
 	 * Metodo que envie el correo
+     * @param session - type Session - conecion a POP3 server
+     * @param from - type String - email del usuario
+     * @param password - type String - contraseña del usuario
+     * @param to - type String - email a donde hay que enviar correo
+     * @param sub - type String - asunto del correo
+     * @param msg - type String - mensaje
+     * @return voolean -> True -> se ha enviado correctamente
+     * 					throw new MessagingException -> se ha ocurrido error
 	 */
 	public static boolean send(Session session, String from,String password,String to,String sub,String msg)
 			throws MessagingException {  
@@ -71,6 +89,9 @@ public class Mailer {
 
 	/*
 	 * IMAP Connection
+     * @param user - type String - email del usuario
+     * @param password - type String - contraseña del usuario
+     * @return Folder -> conecion al servidor IMAP
 	 */
 	public static Folder getConnectionToIMAP(String user, String password) throws MessagingException {
 		Session session = Session.getDefaultInstance(new Properties());
@@ -82,6 +103,11 @@ public class Mailer {
 	}
 	/*
 	 * Metodo que devuelve los correos no leidos
+     * @param user - type String - email del usuario
+     * @param password - type String - contraseña del usuario
+     * @param inbox - type Folder - conecion al servidor IMAP
+     * @param getAllEmails - type boolean - True -> recoget todos los correos
+     * 										False -> recoget solo los correos no leidos
 	 */
 	public static ArrayList<Models.Message> readInboundEmails(Folder inbox, String user,
 		      String password, boolean getAllEmails) {
@@ -134,6 +160,11 @@ public class Mailer {
 	
 	/*
 	 * Metodo que cambia el estado de mensaje (de 'No leido' a 'Leido')
+     * @param user - type String - email del usuario
+     * @param password - type String - contraseña del usuario
+     * @param message - type Models.Message - un correo determinado
+     * @return boolean - True -> correo actualizado
+     * 					False -> error
 	 */
 	public static boolean flagAsSeen(Models.Message message, String user, String password) throws MessagingException {
 		Session session = Session.getDefaultInstance(new Properties()); // Es necesario establecer nueva conneccion
@@ -197,7 +228,13 @@ public class Mailer {
 	    return result;
 	}
 
-	//Comprobar datos de usuario
+	/*Comprobar datos de usuario
+	 * 
+     * @param user - type String - email del usuario
+     * @param password - type String - contraseña del usuario
+     * @param properties - type Properties - propiedades del servidor
+     * @return Session - sesion 
+	 */
 	private static Session getAuthentication(Properties properties, String user, String password) {
 		return Session.getInstance(properties,    
 		         new Authenticator() {

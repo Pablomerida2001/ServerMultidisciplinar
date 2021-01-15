@@ -1,10 +1,19 @@
 package Database.Services.UserService;
-
+/*
+ * Clase FindUser
+ * 
+ * Clase que se que busca a un usuario por su email y contraseña
+ * 
+ * @Author Grupo2
+ * 
+ * @Version 1.0
+ * 
+ */
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import Database.DbConnection;
-import Database.User;
+import Models.User;
 
 public class FindUser {
 
@@ -14,6 +23,12 @@ public class FindUser {
 	 * Metodo que busca a un usuario por su email y contraseña
 	 * Devuelva un objeto User, con datos si usuario existe y sin datos cuando no existe
 	 */
+	/**
+     * Metodo que busca a un usuario por su email y contraseña
+     * @param email - type String - email del usuario
+     * @param password - type String - contraseña del usuario
+     * @return User -> los datos del usuario
+     */
 	public static User FindUser(String email, String password) {
 		db = new DbConnection();
 		User user = new User();

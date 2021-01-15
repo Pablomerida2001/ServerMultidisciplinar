@@ -1,6 +1,13 @@
 package Server;
 /*
+ * Clase RecieveEmailThread
+ * 
  * Es un hilo que se encarga de recibir los correos
+ * 
+ * @Author Grupo2
+ * 
+ * @Version 1.0
+ * 
  */
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -24,6 +31,16 @@ public class RecieveEmailThread extends Thread {
 	private ObjectOutputStream outputStream; 
 	private final int DELAY = 60000; // Retraso del proceso de recibo de email
 	
+	/**
+     * Constructor con 5 parametros
+     * @param user - type String - email del usuario
+     * @param password - type String - contraseña del usuario
+     * @param getAllEmails - type boolean - True -> recoger todo los correos
+     * 										False -> recoger solo los correos leidos
+     * @param userStillOnLine - type boolean - - True -> usuario online
+     * 										False -> usuario offnline
+     * @return User -> los datos del usuario
+     */
 	public RecieveEmailThread(String user, String password, 
 			boolean getAllEmails, boolean userStillOnLine, ObjectOutputStream outputStream)
 			throws MessagingException {

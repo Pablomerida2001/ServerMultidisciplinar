@@ -1,13 +1,29 @@
 package Database;
-
+/*
+ * Clase UserCreate
+ * 
+ * Clase que se utiliza para registrar usuario en la base de datos
+ * 
+ * @Author Grupo2
+ * 
+ * @Version 1.0
+ * 
+ */
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import Models.User;
+
 public class UserCreate{
 	
-	//metodo para registrar usuario en la base de datos
-
+	/**
+     * Metodo que inserta usuario en la base de datos
+     * @param user - type User - los datos del usuario que hay que insertar
+     * @param connection - type Connection - conecion a la basa de datos
+     * @return True -> se ha insertado correctamente
+     * 			False -> exepction
+     */
 	public static boolean registrar(User user, Connection connection) {
 
 		PreparedStatement ps = null;

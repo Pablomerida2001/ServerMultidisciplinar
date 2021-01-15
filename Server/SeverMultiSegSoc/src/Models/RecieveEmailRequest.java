@@ -2,18 +2,18 @@ package Models;
 
 import java.io.Serializable;
 
-public class RecieveEmailRequest implements Serializable {
+public class RecieveEmailRequest implements Serializable{
 	private boolean getAllEmail;
 	private boolean userOnLine;
 
-
-
+	
+	
 	public RecieveEmailRequest(boolean getAllEmail, boolean userOnLine) {
 		super();
 		this.getAllEmail = getAllEmail;
 		this.userOnLine = userOnLine;
 	}
-
+	
 
 	public RecieveEmailRequest() {
 		super();
@@ -37,6 +37,4 @@ public class RecieveEmailRequest implements Serializable {
 	public void setUserOnLine(boolean userOnLine) {
 		this.userOnLine = userOnLine;
 	}
-
-
 }

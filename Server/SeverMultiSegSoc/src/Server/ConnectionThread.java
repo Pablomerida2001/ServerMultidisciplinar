@@ -1,5 +1,7 @@
 package Server;
-
+/*
+ * Metodo que gestiona las peticiones de un Cliente determinado
+ */
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -28,29 +30,24 @@ import Models.SendEmailRequest;
 public class ConnectionThread extends Thread{
 	
 	private Socket socket;
-	private DbConnection dbconnection;
-	private ObjectInputStream dataIS;
-	private ObjectOutputStream dataOS;
+	private ObjectInputStream objectIS;
+	private ObjectOutputStream objectOS;
 	private User user;
 	private Session session;
 	private RecieveEmailThread emailThread;
-
 	
-	public ConnectionThread(Socket socket, DbConnection dbconnection) {
+	public ConnectionThread(Socket socket) {
 		this.socket = socket;
-		this.dbconnection = dbconnection;
 	}
 	
 	public void run() {
 		try {
-			dataIS = new ObjectInputStream(socket.getInputStream());
-			dataOS = new ObjectOutputStream(socket.getOutputStream());
+			objectIS = new ObjectInputStream(socket.getInputStream());
+			objectOS = new ObjectOutputStream(socket.getOutputStream());
 			DataRequestResponse request;
 			
-//			RecieveEmailThread emailThread = new RecieveEmailThread("vbay.sanjose@alumnado.fundacionloyola.net", "67757111", true);
-			
 			while(true) {
-				request = (DataRequestResponse) dataIS.readObject();
+				request = (DataRequestResponse) objectIS.readObject();
 
 				switch (request.getAction()) {
 				case "0001":
@@ -80,7 +77,6 @@ public class ConnectionThread extends Thread{
 					sendEmail(request.getAction(), emailRequest.getFrom(), emailRequest.getPassword(), emailRequest.getTo(),
 							emailRequest.getSub(), emailRequest.getMsg());
 					break;
-					
 				case "0007":
 					startRecievingEmail((RecieveEmailRequest) request.getData().get(0));
 					break;
@@ -106,18 +102,24 @@ public class ConnectionThread extends Thread{
 		}
 	}
 	
+	/*
+	 * Cambia el hilo para recibir determinado estado de correos 
+	 */
 	public void changeStateOfRecievingEmails(boolean allEmails) {
 		emailThread.setUserStillOnLine(false);
 		emailThread.interrupt();
 		try {
 			emailThread = new RecieveEmailThread(this.user.getEmail(), this.user.getPassword(), 
-					allEmails, true, dataOS);
+					allEmails, true, objectOS);
 			emailThread.start();
 		} catch (MessagingException e) {
 			System.out.println("Error in changeStateOfRecievingEmails " + e.getMessage());
 		}
 	}
-
+	
+	/*
+	 * Actualizar el estado de correo (de 'No leido' a 'Leido')
+	 */
 	public void flagAsSeen(Message email) {
 		try {
 			Mailer.flagAsSeen(email, this.user.getEmail(), this.user.getPassword());
@@ -129,9 +131,11 @@ public class ConnectionThread extends Thread{
 	public void startRecievingEmail(RecieveEmailRequest emailRequest) {
 		try {
 			emailThread = new RecieveEmailThread(this.user.getEmail(), this.user.getPassword(), 
-				emailRequest.isGetAllEmail(), emailRequest.isUserOnLine(), dataOS);
+					emailRequest.isGetAllEmail(), emailRequest.isUserOnLine(), objectOS);
 			emailThread.start();
-		} catch (MessagingException e) {}	
+		} catch (MessagingException e) {
+			System.out.println(e.getMessage());
+		}
 	}
 	
 	public void sendEmail(String action, String from, String password, String to, String sub, String msg) {
@@ -139,15 +143,14 @@ public class ConnectionThread extends Thread{
 		try {
 			try {
 				session = Mailer.getConnectionToPOP3(from, password);
-				boolean result = Mailer.send(session, from, password, to, sub, msg); 
-				// True -> correo enviado
+				boolean result = Mailer.send(session, from, password, to, sub, msg); // True -> correo enviado
 				response.addData(result);
-				dataOS.writeObject(response);
+				objectOS.writeObject(response);
 			} catch (MessagingException e) {
 				System.out.println("Error, in sendEmail (MessagingException) " + e.getMessage());
 				response.setError("Error");
 				response.setErrorMessage(e.getMessage());
-				dataOS.writeObject(response);
+				objectOS.writeObject(response);
 			}
 		} catch (Exception e) {
 			System.out.println("Error in sendEmail, " + e.getMessage());
@@ -163,10 +166,10 @@ public class ConnectionThread extends Thread{
 				if(checkOnlineStatus && user.getOnline()) {
 					response.setError("Error");
 					response.setErrorMessage("Ya existe una sesión iniciada con esta cuenta");
-					dataOS.writeObject(response);	
+					objectOS.writeObject(response);	
 				}else {
 					System.out.println("si");
-					dataOS.writeObject(response);
+					objectOS.writeObject(response);
 					if(checkOnlineStatus) {
 						ChangeOnlineStatus.changeOnlineStatus(true, user.getEmail(), user.getPassword());
 					}
@@ -174,7 +177,7 @@ public class ConnectionThread extends Thread{
 			}else {
 				response.setError("Error");
 				response.setErrorMessage("Usuario o contraseña incorrecto");
-				dataOS.writeObject(response);
+				objectOS.writeObject(response);
 			}
 		} catch (Exception e) {
 			System.out.println("Error in login. " + e.getMessage());
@@ -188,7 +191,7 @@ public class ConnectionThread extends Thread{
 		response.setAction("0003");
 		response.addData(textData);
 		try {
-			dataOS.writeObject(response);
+			objectOS.writeObject(response);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -198,7 +201,7 @@ public class ConnectionThread extends Thread{
 		DataRequestResponse response = new DataRequestResponse(action, "", "", new ArrayList<Object>());
 		try {
 			response.addData(user);
-			dataOS.writeObject(response);
+			objectOS.writeObject(response);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

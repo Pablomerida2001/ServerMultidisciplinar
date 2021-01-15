@@ -7,6 +7,9 @@ import Database.DbConnection;
 
 public class GetManualContent {
 	
+	//metodo para hacer una consulta del contenido del manual de android por
+	//indice y por idioma
+	
 	private static DbConnection db;
 	
 	public static String getContent(int index, String lenguage) {

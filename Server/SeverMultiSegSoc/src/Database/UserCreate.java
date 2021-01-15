@@ -5,6 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class UserCreate{
+	
+	//metodo para registrar usuario en la base de datos
 
 	public static boolean registrar(User user, Connection connection) {
 

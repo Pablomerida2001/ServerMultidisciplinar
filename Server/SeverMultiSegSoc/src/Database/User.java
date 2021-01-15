@@ -4,6 +4,8 @@ import java.io.Serializable;
 
 public class User implements Serializable{
 	
+	//modelo de usuario que contiene todos los datos que tenemos del mismo en la base de datos
+	
 	private int Id = -1;
 	private String Name;
 	private String Surname;

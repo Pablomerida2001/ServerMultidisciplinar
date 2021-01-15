@@ -3,6 +3,7 @@ package Database.Services.Movement;
 import Database.DbConnection;
 
 public class CreateMovement {
+	
 	private static DbConnection db;
 	
 	/*

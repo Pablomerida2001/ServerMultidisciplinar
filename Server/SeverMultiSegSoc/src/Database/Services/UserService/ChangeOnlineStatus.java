@@ -6,6 +6,11 @@ public class ChangeOnlineStatus {
 	
 	private static DbConnection db;
 	
+	/*
+	 * Metodo que cambia el estado online del usuario para evitar varias conexiones al mismo tiempo
+	 * desde una cuenta, y que cuando se desconecte se ponga el estado offline
+	 */
+	
 	public static void changeOnlineStatus(boolean online, String email, String password) {
 		db = new DbConnection();
 		int num = 0;

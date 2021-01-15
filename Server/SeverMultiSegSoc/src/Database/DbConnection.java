@@ -8,6 +8,9 @@ import java.sql.Statement;
 
 public class DbConnection {
 	
+	//clase de conexion a base de datos. Tiene metodos para ejecutar consultas a la base de 
+	//datos, y puede devolver resultado o no
+	
 	Connection connection;
 	Statement statement;
 	

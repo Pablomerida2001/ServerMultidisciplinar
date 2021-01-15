@@ -21,8 +21,10 @@ public class Main {
 		
 		DbConnection dbconnection = new DbConnection();
 		try {
+			//se inicia el servidor en el puerto 5013
 			server = new ServerSocket(port);
 			while(true) {
+					//se esperan conexiones, y se inicia un nuevo hilo para cada conexion.
 					socket = new Socket();		
 					System.out.println("Waiting connection...");
 					socket = server.accept();

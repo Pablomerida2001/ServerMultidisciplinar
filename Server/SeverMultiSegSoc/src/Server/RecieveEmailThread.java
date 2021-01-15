@@ -22,7 +22,7 @@ public class RecieveEmailThread extends Thread {
 	private boolean getAllEmails = false;
 	private Folder inbox;
 	private ObjectOutputStream outputStream; 
-	private int delay = 60000; // Retraso del proceso de recibo de email
+	private final int DELAY = 60000; // Retraso del proceso de recibo de email
 	
 	public RecieveEmailThread(String user, String password, 
 			boolean getAllEmails, boolean userStillOnLine, ObjectOutputStream outputStream)
@@ -38,6 +38,7 @@ public class RecieveEmailThread extends Thread {
 	public void run() {
 		while(userStillOnLine) {
 			DataRequestResponse response = new DataRequestResponse("1111", "", "", new ArrayList<Object>());
+			boolean isAllowToSleep = true;
 			try {
 			    this.inbox = Mailer.getConnectionToIMAP(user, password); // Se establece la conecion con el servidor
 				email = Mailer.readInboundEmails(inbox, user, password, getAllEmails);
@@ -55,6 +56,7 @@ public class RecieveEmailThread extends Thread {
 				if(e.getMessage().contains("[AUTHENTICATIONFAILED]")) { // Error de identificacion o verificacion
 					System.out.println("Inncorrect email or password ");
 					userStillOnLine = false;
+					isAllowToSleep = false;
 					response.setError("Error");
 					response.setErrorMessage("La contraseña o email es incorrecta");
 					try {
@@ -63,15 +65,18 @@ public class RecieveEmailThread extends Thread {
 					}
 					break;
 				} else if(e.getMessage().contains("[ALERT]")){ // Alerta de coneciones simultaneas, etc..
-					System.out.println("Error in RecieveEmailThread, " + e.getMessage());
+					System.out.println("ALERT in RecieveEmailThread, " + e.getMessage());
 				} else {
-					userStillOnLine = false;
+					System.out.println("Error in RecieveEmailThread " + e.getMessage());
+					isAllowToSleep = false;
 				}
 			}
-			try {
-				this.sleep(delay);
-			} catch (InterruptedException e) {
-				System.out.println("Interrupcion de proceso sleep" + e.getMessage());
+			if(isAllowToSleep) {
+				try {
+					this.sleep(DELAY);
+				} catch (InterruptedException e) {
+					System.out.println("Interrupcion de proceso sleep" + e.getMessage());
+				}
 			}
 		}
 	}

@@ -92,6 +92,7 @@ public class ConnectionThread extends Thread{
 		} catch(java.net.SocketException ee) {
 			if(user != null) {
 				ChangeOnlineStatus.changeOnlineStatus(false, user.getEmail(), user.getPassword());
+				emailThread.setUserStillOnLine(false); // Terminar el hilo cuando el usuario se desconecta
 			}
 			System.out.println("Client disconnected");
 			return;

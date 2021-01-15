@@ -1,5 +1,7 @@
 package Server;
-
+/*
+ * Metodo que gestiona las peticiones de un Cliente determinado
+ */
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -29,7 +31,6 @@ import Models.SendEmailRequest;
 public class ConnectionThread extends Thread{
 	
 	private Socket socket;
-	private DbConnection dbconnection;
 	private ObjectInputStream dataIS;
 	private ObjectOutputStream dataOS;
 	private User user;
@@ -38,9 +39,8 @@ public class ConnectionThread extends Thread{
 	
 	
 	
-	public ConnectionThread(Socket socket, DbConnection dbconnection) {
+	public ConnectionThread(Socket socket) {
 		this.socket = socket;
-		this.dbconnection = dbconnection;
 	}
 	
 	public void run() {
@@ -48,8 +48,6 @@ public class ConnectionThread extends Thread{
 			dataIS = new ObjectInputStream(socket.getInputStream());
 			dataOS = new ObjectOutputStream(socket.getOutputStream());
 			DataRequestResponse request;
-			
-//			RecieveEmailThread emailThread = new RecieveEmailThread("vbay.sanjose@alumnado.fundacionloyola.net", "67757111", true);
 			
 			while(true) {
 				request = (DataRequestResponse) dataIS.readObject();
@@ -96,6 +94,9 @@ public class ConnectionThread extends Thread{
 		}
 	}
 	
+	/*
+	 * Cambia el hilo para recibir determinado estado de correos 
+	 */
 	public void changeStateOfRecievingEmails(boolean allEmails) {
 		emailThread.setUserStillOnLine(false);
 		emailThread.interrupt();
@@ -108,6 +109,9 @@ public class ConnectionThread extends Thread{
 		}
 	}
 	
+	/*
+	 * Actualizar el estado de correo (de 'No leido' a 'Leido')
+	 */
 	public void flagAsSeen(Message email) {
 		try {
 			Mailer.flagAsSeen(email, this.user.getEmail(), this.user.getPassword());
@@ -122,8 +126,7 @@ public class ConnectionThread extends Thread{
 					emailRequest.isGetAllEmail(), emailRequest.isUserOnLine(), dataOS);
 			emailThread.start();
 		} catch (MessagingException e) {
-//			DataRequestResponse response = new DataRequestResponse(request.getAction(), "Error", e.getMessage(), null);
-//			dataOS.writeObject(response);
+			System.out.println(e.getMessage());
 		}
 	}
 	

@@ -1,5 +1,7 @@
 package Server;
-
+/*
+ * Es un hilo que se encarga de recibir los correos
+ */
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
@@ -20,6 +22,7 @@ public class RecieveEmailThread extends Thread {
 	private boolean getAllEmails = false;
 	private Folder inbox;
 	private ObjectOutputStream outputStream; 
+	private int delay = 60000; // Retraso del proceso de recibo de email
 	
 	public RecieveEmailThread(String user, String password, 
 			boolean getAllEmails, boolean userStillOnLine, ObjectOutputStream outputStream)
@@ -29,7 +32,6 @@ public class RecieveEmailThread extends Thread {
 		this.userStillOnLine = userStillOnLine;
 		this.getAllEmails = getAllEmails;
 		this.outputStream = outputStream;
-//		this.inbox = Mailer.getConnectionToIMAP(user, password);
 	}
 	
 	@Override
@@ -37,23 +39,20 @@ public class RecieveEmailThread extends Thread {
 		while(userStillOnLine) {
 			DataRequestResponse response = new DataRequestResponse("1111", "", "", new ArrayList<Object>());
 			try {
-			    this.inbox = Mailer.getConnectionToIMAP(user, password);
+			    this.inbox = Mailer.getConnectionToIMAP(user, password); // Se establece la conecion con el servidor
 				email = Mailer.readInboundEmails(inbox, user, password, getAllEmails);
 				this.inbox.close(true); // Es necesario cerrar cada coneccion, ya que gmail no permite varias conecciones
-			if (email.size() > 0) { // 
+			if (email.size() > 0) { // Si hay correos
 				response.addData(email);
-				System.out.println(email.size());
-//				if(email.size() > 1) {
-//					Mailer.flagAsSeen(email.get(0), user, password);
-//				}
 				outputStream.writeObject(response);
-			} else {
+			} else { // No hay correos
+				email.clear();
+				email.add(new Message(-1, "", "", null, "No hay nuevos correos"));
 				response.addData(email);
-				System.out.println("Without new emails");
 				outputStream.writeObject(response);
 			}
 			}catch (Exception e) {
-				if(e.getMessage().contains("[AUTHENTICATIONFAILED]")) {
+				if(e.getMessage().contains("[AUTHENTICATIONFAILED]")) { // Error de identificacion o verificacion
 					System.out.println("Inncorrect email or password ");
 					userStillOnLine = false;
 					response.setError("Error");
@@ -63,24 +62,23 @@ public class RecieveEmailThread extends Thread {
 					} catch (IOException e1) {
 					}
 					break;
-				} else if(e.getMessage().contains("[ALERT]")){
+				} else if(e.getMessage().contains("[ALERT]")){ // Alerta de coneciones simultaneas, etc..
 					System.out.println("Error in RecieveEmailThread, " + e.getMessage());
 				} else {
 					userStillOnLine = false;
-					System.out.println("Error in RecieveEmailThread, " + e.getMessage());
 				}
-				
-				//error de inicio de sesión email
-//				userStillOnLine = false;
 			}
 			try {
-				this.sleep(30000);
+				this.sleep(delay);
 			} catch (InterruptedException e) {
-				System.out.println("Error in RecieveEmailThread (InterruptedException), " + e.getMessage());
+				System.out.println("Interrupcion de proceso sleep" + e.getMessage());
 			}
 		}
 	}
 
+	/*
+	 * Getters & Setters
+	 */
 	public ArrayList<Message> getEmail() {
 		return email;
 	}

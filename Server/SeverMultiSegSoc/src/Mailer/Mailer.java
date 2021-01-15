@@ -1,6 +1,7 @@
 package Mailer;
 /*
- * Clase que envia y recibe los correos
+ * Clase que envia, recibe y modifique los correos
+ * El recibo de correo puede ser de dos tipo, de correos con estado 'No leido' y 'Leido'
  */
 
 import javax.mail.MessagingException;
@@ -68,11 +69,6 @@ public class Mailer {
          return true;   
 	}
 	
-	
-	
-	
-	
-	
 	/*
 	 * IMAP Connection
 	 */
@@ -103,17 +99,15 @@ public class Mailer {
 			} else {
 				messages = inbox.search(
 				    new FlagTerm(new Flags(Flags.Flag.SEEN), false));
-
-				
-				// Ordenar los mensajes (el primero sera más reciente)
-			    Arrays.sort( messages, ( m1, m2 ) -> {
-			      try {
-			        return m2.getSentDate().compareTo( m1.getSentDate() );
-			      } catch ( MessagingException e ) {
-			        throw new RuntimeException( e );
-			      }
-			    } );
 			}
+			// Ordenar los mensajes (el primero sera más reciente)
+		    Arrays.sort( messages, ( m1, m2 ) -> {
+		      try {
+		        return m2.getSentDate().compareTo( m1.getSentDate() );
+		      } catch ( MessagingException e ) {
+		        throw new RuntimeException( e );
+		      }
+		    } );
 
 		    for ( Message message : messages ) {
 		      try {
@@ -138,14 +132,15 @@ public class Mailer {
 	    return recievedMessages;
 	  }
 	
-	
+	/*
+	 * Metodo que cambia el estado de mensaje (de 'No leido' a 'Leido')
+	 */
 	public static boolean flagAsSeen(Models.Message message, String user, String password) throws MessagingException {
-		Session session = Session.getDefaultInstance(new Properties());
+		Session session = Session.getDefaultInstance(new Properties()); // Es necesario establecer nueva conneccion
 	    Store store = session.getStore("imaps");
 	    store.connect("imap.googlemail.com", 993, user, password);
 	    Folder folder = store.getFolder( "INBOX" );
-	    folder.open( Folder.READ_WRITE);
-		
+	    folder.open( Folder.READ_WRITE); //Abrir con permiso para modificar correo
 		
 		try {
 			SearchTerm searchCondition = new SearchTerm() {
@@ -173,7 +168,7 @@ public class Mailer {
 	}
 	
 	/*
-	 * Metodos adicionales
+	 * Metodos adicionales para sacar correctamente los mensaje de objeto Message de javax.mail.Message
 	 */
 	private static String getTextFromMessage(Message message) throws MessagingException, IOException {
 	    String result = "";
